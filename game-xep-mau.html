@@ -132,6 +132,23 @@
   .gameover-score.record{ color:var(--gold); }
   .gameover-tag{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); margin-bottom:24px; }
 
+  .record-form{
+    display:flex; gap:8px; justify-content:center; flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .record-form input{
+    font-family:'Space Grotesk',sans-serif; font-size:14px;
+    background:var(--panel-2); border:1px solid var(--line); color:var(--paper);
+    border-radius:999px; padding:11px 18px; outline-offset:2px;
+    max-width:220px;
+  }
+  .record-form input:focus-visible{ outline:2px solid var(--gold); }
+  .record-saved{
+    font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--good);
+    margin:0 0 18px;
+  }
+  .record-saved b{ color:var(--gold); font-family:'Fraunces',serif; font-size:15px; }
+
   footer{
     margin-top:50px; padding-top:20px; border-top:1px solid var(--line);
     font-size:12px; color:var(--muted); text-align:center; line-height:1.7;
@@ -189,8 +206,16 @@ const MODES = {
 let mode = "hue";
 let level = 1;
 let score = 0;
-let lives = 3;
+const TOTAL_LIVES = 1;
+let lives = TOTAL_LIVES;
 let best = Number(localStorage.getItem("xepmau_best") || 0);
+let bestName = localStorage.getItem("xepmau_best_name") || "";
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
 let board = [];         // mảng các ô đang hiển thị, mỗi ô có {hex, correctIndex}
 let selectedPos = null;
 let timerInterval = null;
@@ -242,7 +267,7 @@ function renderStartScreen(){
   clearInterval(timerInterval);
   panel.innerHTML = `
     <div class="start-screen">
-      <p class="best-score">Kỷ lục hiện tại: <b>${best}</b> điểm</p>
+      <p class="best-score">Kỷ lục hiện tại: <b>${best}</b> điểm${bestName ? ` — bởi <b>${escapeHtml(bestName)}</b>` : ""}</p>
       <div class="mode-toggle" id="modeToggle">
         <button type="button" data-mode="hue">Theo Sắc (Hue)</button>
         <button type="button" data-mode="value">Theo Sắc Độ (Value)</button>
@@ -250,8 +275,8 @@ function renderStartScreen(){
       <div class="rules">
         <b>Cách chơi:</b> mỗi vòng có một dãy ô màu bị xáo trộn. Bấm 1 ô rồi bấm
         ô thứ hai để đổi chỗ hai ô đó. Chấm xanh dưới ô báo hiệu ô đó đã đúng vị
-        trí. Xếp đúng toàn bộ trước khi hết giờ để ăn điểm và sang vòng khó hơn
-        — hết giờ mà chưa xong sẽ mất 1 mạng. Hết 3 mạng thì kết thúc.
+        trí. Xếp đúng toàn bộ trước khi hết giờ để ăn điểm và sang vòng khó hơn.
+        Chỉ có <b>1 mạng duy nhất</b> — hết giờ mà chưa xong là kết thúc ngay.
       </div>
       <button class="big-btn" id="startBtn">Bắt đầu chơi</button>
     </div>
@@ -270,7 +295,7 @@ function renderStartScreen(){
 
 /* ================= Vòng chơi ================= */
 function startGame(){
-  level = 1; score = 0; lives = 3;
+  level = 1; score = 0; lives = TOTAL_LIVES;
   nextRound();
 }
 
@@ -316,7 +341,7 @@ function renderGameScreen(){
 function renderLives(){
   const row = document.getElementById("livesRow");
   row.innerHTML = "";
-  for(let i = 0; i < 3; i++){
+  for(let i = 0; i < TOTAL_LIVES; i++){
     const dot = document.createElement("span");
     dot.className = "life-dot" + (i < lives ? " on" : "");
     row.appendChild(dot);
@@ -412,7 +437,7 @@ function handleTimeout(){
   roundBusy = true;
   lives -= 1;
   renderLives();
-  showToast("Hết giờ!", lives > 0 ? `Còn ${lives} mạng — thử lại vòng này` : "Hết mạng rồi!", "lose");
+  showToast("Hết giờ!", "Kết thúc lượt chơi", "lose");
   setTimeout(()=>{
     if(lives > 0){
       nextRound();
@@ -434,10 +459,34 @@ function endGame(){
     <div class="start-screen">
       <p class="eyebrow" style="margin-bottom:2px;">Kết thúc lượt chơi</p>
       <div class="gameover-score${isRecord ? " record" : ""}">${score}</div>
-      <p class="gameover-tag">${isRecord ? "🏆 Kỷ lục mới!" : `Kỷ lục hiện tại: ${best} điểm`}</p>
-      <button class="big-btn" id="retryBtn">Chơi lại</button>
+      <p class="gameover-tag" id="gameoverTag">${
+        isRecord
+          ? "🏆 Kỷ lục mới!"
+          : `Kỷ lục hiện tại: ${best} điểm${bestName ? " — bởi " + escapeHtml(bestName) : ""}`
+      }</p>
+      ${isRecord ? `
+      <div class="record-form" id="recordForm">
+        <input type="text" id="recordNameInput" placeholder="Nhập tên của bạn" maxlength="24" value="${escapeHtml(bestName)}">
+        <button class="big-btn" id="saveRecordBtn">Lưu tên</button>
+      </div>` : ""}
+      <button class="big-btn${isRecord ? " secondary" : ""}" id="retryBtn">Chơi lại</button>
     </div>
   `;
+  if(isRecord){
+    const input = document.getElementById("recordNameInput");
+    const saveBtn = document.getElementById("saveRecordBtn");
+    input.focus();
+    input.select();
+    const saveName = ()=>{
+      const name = input.value.trim().slice(0, 24) || "Ẩn danh";
+      bestName = name;
+      localStorage.setItem("xepmau_best_name", name);
+      document.getElementById("recordForm").outerHTML =
+        `<p class="record-saved">Đã lưu kỷ lục cho <b>${escapeHtml(name)}</b> 🎉</p>`;
+    };
+    saveBtn.addEventListener("click", saveName);
+    input.addEventListener("keydown", (e)=>{ if(e.key === "Enter") saveName(); });
+  }
   document.getElementById("retryBtn").addEventListener("click", renderStartScreen);
 }
 
