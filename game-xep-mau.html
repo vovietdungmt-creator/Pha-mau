@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Xếp Đúng Màu — Mini game rèn mắt màu sắc</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --ink:#121116; --panel:#1B1A20; --panel-2:#201F26; --line:#322F3A;
+    --paper:#ECE7DD; --muted:#918E9C;
+    --accent:#5EEAD4; --good:#7FD858; --bad:#E8604C; --gold:#D9A927;
+  }
+  *,*::before,*::after{ box-sizing:border-box; }
+  body{
+    margin:0; font-family:'Space Grotesk',sans-serif;
+    background:var(--ink); color:var(--paper); min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{ max-width:720px; margin:0 auto; padding:48px 20px 70px; }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--muted); margin:0 0 10px;
+  }
+  h1.title{
+    font-family:'Fraunces',serif; font-weight:700; font-size:clamp(30px,6vw,46px);
+    line-height:1.05; margin:0 0 12px; letter-spacing:-0.01em;
+  }
+  .lede{ margin:0 0 8px; font-size:14.5px; line-height:1.6; color:var(--muted); max-width:52ch; }
+
+  .panel{
+    margin-top:26px; background:var(--panel); border:1px solid var(--line);
+    border-radius:20px; padding:26px 24px; position:relative; overflow:hidden;
+  }
+
+  /* ---------- Màn hình bắt đầu ---------- */
+  .start-screen{ text-align:center; }
+  .best-score{
+    font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--muted);
+    margin:0 0 22px;
+  }
+  .best-score b{ color:var(--gold); }
+
+  .mode-toggle{
+    display:inline-flex; margin-bottom:22px; padding:4px; background:var(--panel-2);
+    border:1px solid var(--line); border-radius:999px; gap:4px;
+  }
+  .mode-toggle button{
+    appearance:none; border:none; background:transparent; color:var(--muted);
+    font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:500;
+    padding:9px 18px; border-radius:999px; cursor:pointer;
+    transition:color .2s ease, background .2s ease;
+  }
+  .mode-toggle button[data-active="true"]{ background:var(--accent); color:#121116; }
+
+  .rules{
+    text-align:left; font-size:12.5px; color:var(--muted); line-height:1.65;
+    max-width:440px; margin:0 auto 26px; background:var(--panel-2);
+    border:1px solid var(--line); border-radius:14px; padding:16px 18px;
+  }
+  .rules b{ color:var(--paper); }
+
+  .big-btn{
+    font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15px;
+    background:var(--accent); color:#121116; border:none; border-radius:999px;
+    padding:14px 32px; cursor:pointer;
+  }
+  .big-btn:hover{ filter:brightness(1.05); }
+  .big-btn.secondary{ background:var(--panel-2); color:var(--paper); border:1px solid var(--line); }
+
+  /* ---------- Màn hình chơi ---------- */
+  .hud{
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:10px; margin-bottom:18px;
+  }
+  .hud-stat{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--muted); }
+  .hud-stat b{ display:block; font-family:'Fraunces',serif; font-size:19px; color:var(--paper); font-weight:600; }
+  .lives{ display:flex; gap:5px; }
+  .life-dot{ width:12px; height:12px; border-radius:50%; background:var(--line); }
+  .life-dot.on{ background:var(--bad); }
+
+  .timer-track{
+    height:8px; border-radius:999px; background:var(--panel-2);
+    border:1px solid var(--line); overflow:hidden; margin-bottom:22px;
+  }
+  .timer-bar{ height:100%; background:var(--accent); width:100%; transition:width .25s linear, background .25s ease; }
+  .timer-bar.low{ background:var(--bad); }
+
+  .mode-hint{
+    text-align:center; font-size:12px; color:var(--muted); font-style:italic;
+    margin:0 0 18px;
+  }
+
+  .board{
+    display:flex; gap:8px; justify-content:center; flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  .tile-wrap{ display:flex; flex-direction:column; align-items:center; gap:7px; }
+  .tile{
+    width:56px; height:56px; border-radius:12px; cursor:pointer;
+    border:2px solid rgba(255,255,255,0.08);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .tile:hover{ transform:translateY(-3px); }
+  .tile.selected{
+    box-shadow:0 0 0 3px var(--accent); transform:translateY(-5px) scale(1.04);
+  }
+  .tile-dot{ width:7px; height:7px; border-radius:50%; background:var(--line); }
+  .tile-dot.correct{ background:var(--good); }
+
+  @media (max-width:480px){
+    .tile{ width:42px; height:42px; border-radius:10px; }
+  }
+
+  .toast{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:8px; background:rgba(18,17,22,0.92);
+    opacity:0; pointer-events:none; transition:opacity .2s ease;
+  }
+  .toast.is-visible{ opacity:1; }
+  .toast-title{ font-family:'Fraunces',serif; font-weight:700; font-size:26px; }
+  .toast-title.win{ color:var(--good); }
+  .toast-title.lose{ color:var(--bad); }
+  .toast-sub{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--muted); }
+
+  /* ---------- Màn hình kết thúc ---------- */
+  .gameover-score{
+    font-family:'Fraunces',serif; font-weight:700; font-size:48px; margin:6px 0 4px;
+  }
+  .gameover-score.record{ color:var(--gold); }
+  .gameover-tag{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); margin-bottom:24px; }
+
+  footer{
+    margin-top:50px; padding-top:20px; border-top:1px solid var(--line);
+    font-size:12px; color:var(--muted); text-align:center; line-height:1.7;
+  }
+  footer a{ color:var(--accent); text-decoration:none; }
+  footer strong{ color:var(--paper); font-weight:500; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <p class="eyebrow">Phòng Pha Màu · Mini game</p>
+    <h1 class="title">Xếp Đúng Màu</h1>
+    <p class="lede">
+      Sắp xếp các ô màu theo đúng thứ tự trước khi hết giờ để ăn điểm. Bấm 2 ô
+      để đổi chỗ cho nhau — chấm nhỏ dưới mỗi ô báo bạn biết ô nào đã đúng vị trí.
+    </p>
+  </header>
+
+  <section class="panel" id="gamePanel"></section>
+
+  <footer>
+    Trò chơi đi kèm <a href="./index.html">Phòng Pha Màu</a> · Công cụ học tập cho sinh viên Thiết kế Đồ họa<br>
+    Biên soạn bởi <strong>Giảng viên Võ Việt Dũng</strong> · Phân hiệu Khánh Hòa, Trường Đại học Tôn Đức Thắng
+  </footer>
+</div>
+
+<script>
+/* ================= Lõi màu (HSL -> RGB -> HEX) ================= */
+function hslToRgb(h,s,l){
+  const hh=((h%360)+360)%360;
+  const c=(1-Math.abs(2*l-1))*s;
+  const x=c*(1-Math.abs(((hh/60)%2)-1));
+  const m=l-c/2;
+  let rp,gp,bp;
+  if(hh<60){rp=c;gp=x;bp=0;}
+  else if(hh<120){rp=x;gp=c;bp=0;}
+  else if(hh<180){rp=0;gp=c;bp=x;}
+  else if(hh<240){rp=0;gp=x;bp=c;}
+  else if(hh<300){rp=x;gp=0;bp=c;}
+  else {rp=c;gp=0;bp=x;}
+  return {
+    r:Math.round((rp+m)*255), g:Math.round((gp+m)*255), b:Math.round((bp+m)*255),
+  };
+}
+const toHex = ({r,g,b}) => "#"+[r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("").toUpperCase();
+
+/* ================= Cấu hình chế độ chơi ================= */
+const MODES = {
+  hue:   { label:"Theo Sắc (Hue)",     hint:"Xếp các ô theo đúng chiều xoay trên vòng thuần sắc — trái là sắc nhỏ hơn, phải là sắc lớn hơn." },
+  value: { label:"Theo Sắc Độ (Value)", hint:"Xếp các ô từ tối nhất (trái) đến sáng nhất (phải) — cùng một sắc, chỉ khác độ sáng." },
+};
+
+/* ================= State ================= */
+let mode = "hue";
+let level = 1;
+let score = 0;
+let lives = 3;
+let best = Number(localStorage.getItem("xepmau_best") || 0);
+let board = [];         // mảng các ô đang hiển thị, mỗi ô có {hex, correctIndex}
+let selectedPos = null;
+let timerInterval = null;
+let timeLeft = 0;
+let timeTotal = 0;
+let roundBusy = false;  // true trong lúc đang hiện toast, chặn thao tác
+
+const panel = document.getElementById("gamePanel");
+
+/* ================= Sinh dữ liệu 1 vòng chơi ================= */
+function tileCountForLevel(lv){ return Math.min(4 + (lv - 1), 9); }
+function timeForLevel(lv, count){
+  return Math.max(14, Math.round(11 + count * 3.2 - lv * 0.6));
+}
+
+function generateOrderedColors(count){
+  const span = 280; // tránh vòng lặp trùng đầu-cuối gây mơ hồ thứ tự
+  const base = Math.random() * 360;
+  const startL = 0.18 + Math.random() * 0.12;
+  const arr = [];
+  for(let i = 0; i < count; i++){
+    const t = i / (count - 1);
+    const slot = span / (count - 1 || 1);
+    const jitter = (Math.random() - 0.5) * slot * 0.35;
+    if(mode === "hue"){
+      const hue = base + t * span + jitter;
+      arr.push(toHex(hslToRgb(hue, 0.68, 0.55)));
+    } else {
+      const l = Math.min(0.86, Math.max(0.12, startL + t * 0.62 + jitter / span));
+      arr.push(toHex(hslToRgb(base, 0.6, l)));
+    }
+  }
+  return arr; // đã đúng thứ tự tăng dần theo index
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function isSolved(){ return board.every((t, i) => t.correctIndex === i); }
+
+/* ================= Màn hình bắt đầu ================= */
+function renderStartScreen(){
+  clearInterval(timerInterval);
+  panel.innerHTML = `
+    <div class="start-screen">
+      <p class="best-score">Kỷ lục hiện tại: <b>${best}</b> điểm</p>
+      <div class="mode-toggle" id="modeToggle">
+        <button type="button" data-mode="hue">Theo Sắc (Hue)</button>
+        <button type="button" data-mode="value">Theo Sắc Độ (Value)</button>
+      </div>
+      <div class="rules">
+        <b>Cách chơi:</b> mỗi vòng có một dãy ô màu bị xáo trộn. Bấm 1 ô rồi bấm
+        ô thứ hai để đổi chỗ hai ô đó. Chấm xanh dưới ô báo hiệu ô đó đã đúng vị
+        trí. Xếp đúng toàn bộ trước khi hết giờ để ăn điểm và sang vòng khó hơn
+        — hết giờ mà chưa xong sẽ mất 1 mạng. Hết 3 mạng thì kết thúc.
+      </div>
+      <button class="big-btn" id="startBtn">Bắt đầu chơi</button>
+    </div>
+  `;
+  document.querySelectorAll("#modeToggle button").forEach((btn)=>{
+    btn.setAttribute("data-active", String(btn.dataset.mode === mode));
+    btn.addEventListener("click", ()=>{
+      mode = btn.dataset.mode;
+      document.querySelectorAll("#modeToggle button").forEach((b)=>{
+        b.setAttribute("data-active", String(b.dataset.mode === mode));
+      });
+    });
+  });
+  document.getElementById("startBtn").addEventListener("click", startGame);
+}
+
+/* ================= Vòng chơi ================= */
+function startGame(){
+  level = 1; score = 0; lives = 3;
+  nextRound();
+}
+
+function nextRound(){
+  roundBusy = false;
+  selectedPos = null;
+  const count = tileCountForLevel(level);
+  const colors = generateOrderedColors(count);
+  let display = shuffle(colors.map((hex, i) => ({ hex, correctIndex: i })));
+  if(isSolvedArr(display)) display = shuffle(display); // tránh xáo trộn ra đúng luôn (hiếm gặp)
+  board = display;
+
+  timeTotal = timeForLevel(level, count);
+  timeLeft = timeTotal;
+
+  renderGameScreen();
+  startTimer();
+}
+function isSolvedArr(arr){ return arr.every((t,i)=> t.correctIndex===i); }
+
+function renderGameScreen(){
+  panel.innerHTML = `
+    <div class="hud">
+      <div class="hud-stat">Cấp độ<b>${level}</b></div>
+      <div class="hud-stat">Điểm<b>${score}</b></div>
+      <div class="hud-stat">Kỷ lục<b>${best}</b></div>
+      <div class="hud-stat">Mạng
+        <div class="lives" id="livesRow"></div>
+      </div>
+    </div>
+    <div class="timer-track"><div class="timer-bar" id="timerBar"></div></div>
+    <p class="mode-hint">${MODES[mode].hint}</p>
+    <div class="board" id="board"></div>
+    <div class="toast" id="toast">
+      <div class="toast-title" id="toastTitle"></div>
+      <div class="toast-sub" id="toastSub"></div>
+    </div>
+  `;
+  renderLives();
+  renderBoard();
+}
+
+function renderLives(){
+  const row = document.getElementById("livesRow");
+  row.innerHTML = "";
+  for(let i = 0; i < 3; i++){
+    const dot = document.createElement("span");
+    dot.className = "life-dot" + (i < lives ? " on" : "");
+    row.appendChild(dot);
+  }
+}
+
+function renderBoard(){
+  const boardEl = document.getElementById("board");
+  boardEl.innerHTML = "";
+  board.forEach((t, pos)=>{
+    const wrap = document.createElement("div");
+    wrap.className = "tile-wrap";
+    const correct = t.correctIndex === pos;
+    wrap.innerHTML = `
+      <div class="tile${pos===selectedPos ? " selected" : ""}" style="background:${t.hex}" data-pos="${pos}"></div>
+      <div class="tile-dot${correct ? " correct" : ""}"></div>
+    `;
+    wrap.querySelector(".tile").addEventListener("click", ()=> handleTileClick(pos));
+    boardEl.appendChild(wrap);
+  });
+}
+
+function handleTileClick(pos){
+  if(roundBusy) return;
+  if(selectedPos === null){
+    selectedPos = pos;
+    renderBoard();
+    return;
+  }
+  if(selectedPos === pos){
+    selectedPos = null;
+    renderBoard();
+    return;
+  }
+  const tmp = board[selectedPos];
+  board[selectedPos] = board[pos];
+  board[pos] = tmp;
+  selectedPos = null;
+  renderBoard();
+
+  if(isSolved()) handleRoundWin();
+}
+
+/* ================= Đồng hồ đếm ngược ================= */
+function startTimer(){
+  clearInterval(timerInterval);
+  updateTimerUI();
+  timerInterval = setInterval(()=>{
+    timeLeft -= 0.25;
+    if(timeLeft <= 0){
+      timeLeft = 0;
+      updateTimerUI();
+      clearInterval(timerInterval);
+      handleTimeout();
+      return;
+    }
+    updateTimerUI();
+  }, 250);
+}
+function updateTimerUI(){
+  const bar = document.getElementById("timerBar");
+  if(!bar) return;
+  const pct = Math.max(0, (timeLeft / timeTotal) * 100);
+  bar.style.width = pct + "%";
+  bar.classList.toggle("low", pct < 30);
+}
+
+/* ================= Kết quả vòng chơi ================= */
+function showToast(title, sub, cls){
+  const toast = document.getElementById("toast");
+  const t = document.getElementById("toastTitle");
+  const s = document.getElementById("toastSub");
+  t.textContent = title;
+  t.className = "toast-title " + cls;
+  s.textContent = sub;
+  toast.classList.add("is-visible");
+}
+
+function handleRoundWin(){
+  roundBusy = true;
+  clearInterval(timerInterval);
+  const count = board.length;
+  const points = 50 + count * 5 + Math.round(timeLeft * 2);
+  score += points;
+  showToast("Chính xác!", `+${points} điểm — sang vòng ${level + 1}`, "win");
+  setTimeout(()=>{
+    level += 1;
+    nextRound();
+  }, 1100);
+}
+
+function handleTimeout(){
+  roundBusy = true;
+  lives -= 1;
+  renderLives();
+  showToast("Hết giờ!", lives > 0 ? `Còn ${lives} mạng — thử lại vòng này` : "Hết mạng rồi!", "lose");
+  setTimeout(()=>{
+    if(lives > 0){
+      nextRound();
+    } else {
+      endGame();
+    }
+  }, 1300);
+}
+
+/* ================= Kết thúc game ================= */
+function endGame(){
+  clearInterval(timerInterval);
+  const isRecord = score > best;
+  if(isRecord){
+    best = score;
+    localStorage.setItem("xepmau_best", String(best));
+  }
+  panel.innerHTML = `
+    <div class="start-screen">
+      <p class="eyebrow" style="margin-bottom:2px;">Kết thúc lượt chơi</p>
+      <div class="gameover-score${isRecord ? " record" : ""}">${score}</div>
+      <p class="gameover-tag">${isRecord ? "🏆 Kỷ lục mới!" : `Kỷ lục hiện tại: ${best} điểm`}</p>
+      <button class="big-btn" id="retryBtn">Chơi lại</button>
+    </div>
+  `;
+  document.getElementById("retryBtn").addEventListener("click", renderStartScreen);
+}
+
+/* ================= Khởi động ================= */
+renderStartScreen();
+</script>
+</body>
+</html>

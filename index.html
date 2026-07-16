@@ -55,6 +55,7 @@
     letter-spacing:-0.01em;
   }
   .lede{ font-size:15.5px; line-height:1.6; color:var(--muted); margin:0 0 26px; max-width:54ch; }
+  .cta-row{ display:flex; gap:10px; flex-wrap:wrap; }
   .cta{
     display:inline-flex;
     align-items:center;
@@ -69,6 +70,10 @@
     border:none;
     cursor:pointer;
   }
+  .cta-secondary{
+    background:var(--panel); color:var(--paper); border:1px solid var(--line);
+  }
+  .cta-secondary:hover{ border-color:var(--accent-ryb); }
 
   /* ---------- Intro: phương trình pha màu ---------- */
   .intro-grid{
@@ -539,7 +544,10 @@
       quan sát màu đổi theo thời gian thực, và thử vượt qua vài thử thách nhỏ để
       nắm chắc lý thuyết màu qua tương tác thay vì học thuộc.
     </p>
-    <a href="#tool" class="cta">Bắt đầu pha màu ↓</a>
+    <div class="cta-row">
+      <a href="#tool" class="cta">Bắt đầu pha màu ↓</a>
+      <a href="./game-xep-mau.html" class="cta cta-secondary">🎮 Chơi mini game xếp màu</a>
+    </div>
   </header>
 
   <section class="intro-grid" aria-label="Giới thiệu nguyên lý pha màu">
