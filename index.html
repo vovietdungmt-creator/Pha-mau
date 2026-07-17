@@ -38,6 +38,19 @@
 
   /* ---------- Hero ---------- */
   .hero{ max-width:640px; margin-bottom:54px; }
+  .site-nav{
+    display:inline-flex; padding:4px; background:var(--panel);
+    border:1px solid var(--line); border-radius:999px; gap:4px;
+    margin-bottom:22px;
+  }
+  .site-nav-btn{
+    font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:500;
+    color:var(--muted); text-decoration:none;
+    padding:8px 18px; border-radius:999px;
+    transition:color .15s ease, background .15s ease;
+  }
+  .site-nav-btn.is-active{ background:var(--accent-rgb); color:#121116; }
+  .site-nav-btn:not(.is-active):hover{ color:var(--paper); }
   .eyebrow{
     font-family:'IBM Plex Mono',monospace;
     font-size:11px;
@@ -537,6 +550,11 @@
 <div class="page">
 
   <header class="hero">
+    <div class="site-nav">
+      <a href="./index.html" class="site-nav-btn is-active">Phòng Pha Màu</a>
+      <a href="./game-xep-mau.html" class="site-nav-btn">Mini game</a>
+      <a href="./goi-y-nganh-theo-mau.html" class="site-nav-btn">Gợi ý ngành nghề</a>
+    </div>
     <p class="eyebrow">Thiết kế đồ họa · Lý thuyết màu</p>
     <h1 class="title">Phòng Pha Màu</h1>
     <p class="lede">
@@ -1776,6 +1794,18 @@ window.addEventListener("beforeunload", ()=>{
 renderEquations();
 renderValueSteps();
 render();
+
+/* Nạp màu từ link ngoài (vd: từ Thư viện Màu Thương Hiệu) qua tham số ?hex=RRGGBB */
+(function loadColorFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  const hexParam = params.get("hex");
+  if(hexParam && /^[0-9A-Fa-f]{6}$/.test(hexParam)){
+    commitRgbToSliders(hexToRgb("#" + hexParam));
+    setTimeout(()=>{
+      document.getElementById("tool").scrollIntoView({behavior:"smooth", block:"start"});
+    }, 200);
+  }
+})();
 </script>
 </body>
 </html>
