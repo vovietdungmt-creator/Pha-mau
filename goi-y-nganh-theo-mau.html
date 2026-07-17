@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gợi Ý Ngành Nghề Theo Màu — Phòng Pha Màu</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --ink:#121116; --panel:#1B1A20; --panel-2:#201F26; --line:#322F3A;
+    --paper:#ECE7DD; --muted:#918E9C; --accent:#5EEAD4; --good:#7FD858;
+  }
+  *,*::before,*::after{ box-sizing:border-box; }
+  body{
+    margin:0; font-family:'Space Grotesk',sans-serif;
+    background:var(--ink); color:var(--paper); min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{ max-width:920px; margin:0 auto; padding:48px 20px 70px; }
+
+  .site-nav{
+    display:inline-flex; padding:4px; background:var(--panel);
+    border:1px solid var(--line); border-radius:999px; gap:4px;
+    margin-bottom:22px;
+  }
+  .site-nav-btn{
+    font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:500;
+    color:var(--muted); text-decoration:none;
+    padding:8px 18px; border-radius:999px;
+    transition:color .15s ease, background .15s ease;
+  }
+  .site-nav-btn.is-active{ background:var(--accent); color:#121116; }
+  .site-nav-btn:not(.is-active):hover{ color:var(--paper); }
+
+  h1.title{
+    font-family:'Fraunces',serif; font-weight:700; font-size:clamp(30px,6vw,44px);
+    line-height:1.05; margin:0 0 12px; letter-spacing:-0.01em;
+  }
+  .lede{ margin:0 0 8px; font-size:14.5px; line-height:1.6; color:var(--muted); max-width:62ch; }
+
+  .disclaimer{
+    margin:16px 0 0; font-size:12px; color:var(--muted); line-height:1.6;
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:12px 16px; max-width:72ch;
+  }
+  .disclaimer b{ color:var(--paper); }
+
+  .search-row{ margin-top:28px; }
+  .search-input{
+    width:100%; font-family:'Space Grotesk',sans-serif; font-size:15px;
+    background:var(--panel); border:1px solid var(--line); color:var(--paper);
+    border-radius:14px; padding:14px 18px; outline-offset:2px;
+  }
+  .search-input:focus-visible{ outline:2px solid var(--accent); }
+  .search-input::placeholder{ color:var(--muted); }
+
+  .chip-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .chip{
+    font-family:'Space Grotesk',sans-serif; font-size:12.5px; font-weight:500;
+    background:var(--panel); border:1px solid var(--line); color:var(--muted);
+    border-radius:999px; padding:7px 14px; cursor:pointer;
+    transition:color .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .chip.is-active{ background:var(--accent); color:#121116; border-color:transparent; }
+  .chip:not(.is-active):hover{ color:var(--paper); border-color:var(--accent); }
+
+  .result-count{
+    margin:18px 2px 14px; font-family:'IBM Plex Mono',monospace;
+    font-size:12px; color:var(--muted);
+  }
+
+  .color-grid{ display:flex; flex-direction:column; gap:14px; }
+  .color-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:18px;
+    padding:20px 22px; display:grid; grid-template-columns:76px 1fr; gap:20px;
+  }
+  @media (max-width:560px){
+    .color-card{ grid-template-columns:1fr; }
+  }
+  .color-swatch-col{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .color-dot{
+    width:64px; height:64px; border-radius:50%; flex:none;
+    border:1px solid rgba(255,255,255,0.12);
+  }
+  .color-open{
+    font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--muted);
+    text-decoration:none; text-align:center; line-height:1.4;
+    transition:color .15s ease;
+  }
+  .color-open:hover{ color:var(--accent); }
+
+  .color-name{ font-family:'Fraunces',serif; font-weight:600; font-size:18px; margin:0 0 6px; }
+  .color-temp{
+    display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:9.5px;
+    letter-spacing:.06em; text-transform:uppercase; color:var(--muted);
+    border:1px solid var(--line); border-radius:999px; padding:2px 9px; margin-bottom:10px;
+  }
+  .color-psych{ font-size:13px; color:var(--muted); line-height:1.6; margin:0 0 14px; }
+
+  .industry-list{ display:flex; flex-direction:column; gap:8px; }
+  .industry-item{
+    display:flex; gap:8px; font-size:12.5px; line-height:1.55;
+  }
+  .industry-item b{ color:var(--paper); font-weight:600; flex:none; }
+  .industry-item span{ color:var(--muted); }
+
+  .empty-state{ text-align:center; padding:50px 20px; color:var(--muted); font-size:13.5px; }
+
+  footer{
+    margin-top:56px; padding-top:20px; border-top:1px solid var(--line);
+    font-size:12px; color:var(--muted); text-align:center; line-height:1.7;
+  }
+  footer strong{ color:var(--paper); font-weight:500; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="site-nav">
+    <a href="./index.html" class="site-nav-btn">Phòng Pha Màu</a>
+    <a href="./game-xep-mau.html" class="site-nav-btn">Mini game</a>
+    <a href="./goi-y-nganh-theo-mau.html" class="site-nav-btn is-active">Gợi ý ngành nghề</a>
+  </div>
+
+  <h1 class="title">Gợi Ý Ngành Nghề Theo Màu</h1>
+  <p class="lede">
+    Mỗi nhóm màu mang một "cảm giác" tâm lý riêng, nên thường được các ngành
+    nghề khác nhau ưu tiên sử dụng. Tra theo nhóm màu hoặc theo từ khóa ngành
+    nghề để tìm gợi ý hướng phối màu phù hợp cho một dự án cụ thể.
+  </p>
+  <p class="disclaimer">
+    <b>Lưu ý:</b> đây là các gợi ý mang tính tham khảo dựa trên nguyên lý tâm lý
+    màu sắc thường được dạy trong thiết kế — không phải quy tắc bắt buộc. Ngành
+    nào cũng có thể dùng bất kỳ màu nào nếu có lý do sáng tạo riêng; hãy xem đây
+    là điểm khởi đầu để suy nghĩ, không phải khuôn mẫu cứng nhắc.
+  </p>
+
+  <div class="search-row">
+    <input type="text" class="search-input" id="searchInput" placeholder="Tìm theo ngành nghề (vd: y tế, thời trang, công nghệ...) hoặc tên màu" />
+    <div class="chip-row" id="chipRow"></div>
+  </div>
+
+  <p class="result-count" id="resultCount"></p>
+  <div class="color-grid" id="colorGrid"></div>
+
+  <footer>
+    <a href="./index.html" style="color:var(--accent);text-decoration:none;">← Quay lại Phòng Pha Màu</a><br>
+    Biên soạn bởi <strong>Giảng viên Võ Việt Dũng</strong> · Phân hiệu Khánh Hòa, Trường Đại học Tôn Đức Thắng
+  </footer>
+</div>
+
+<script>
+/* ================= Dữ liệu tâm lý màu & gợi ý ngành nghề ================= */
+const TEMPS = { warm:"Màu nóng", cool:"Màu lạnh", neutral:"Trung tính" };
+
+const COLOR_FAMILIES = [
+  { key:"red", name:"Đỏ", hex:"#E5352B", temp:"warm",
+    psych:"Năng lượng mạnh, khẩn cấp, đam mê — kích thích sự chú ý và thèm ăn, tạo cảm giác cấp bách.",
+    industries:[
+      {name:"Ẩm thực & đồ ăn nhanh", why:"kích thích vị giác, thúc đẩy quyết định mua nhanh"},
+      {name:"Thể thao & năng lượng", why:"thể hiện sức mạnh, tốc độ, sự quyết liệt"},
+      {name:"Giải trí & truyền thông", why:"nổi bật, dễ thu hút ánh nhìn giữa đám đông"},
+      {name:"An toàn & cảnh báo", why:"gắn liền với tín hiệu khẩn cấp, dễ nhận biết"},
+    ] },
+  { key:"orange", name:"Cam", temp:"warm", hex:"#F4802A",
+    psych:"Thân thiện, vui vẻ, giá cả phải chăng — ấm áp hơn đỏ nhưng vẫn giữ được sự năng động.",
+    industries:[
+      {name:"Bán lẻ & khuyến mãi", why:"tạo cảm giác giá hời, kêu gọi hành động"},
+      {name:"Thực phẩm & đồ uống", why:"kích thích thèm ăn nhẹ nhàng, thân thiện hơn đỏ"},
+      {name:"Sản phẩm sáng tạo cho giới trẻ", why:"trẻ trung, phá cách, gần gũi"},
+      {name:"Vận chuyển & logistics", why:"dễ nhận diện từ xa, gợi cảm giác chuyển động"},
+    ] },
+  { key:"yellow", name:"Vàng", temp:"warm", hex:"#F4C40F",
+    psych:"Lạc quan, chú ý, trẻ trung — sáng nhất trong dải màu nóng, dễ gây chú ý tức thời.",
+    industries:[
+      {name:"Giáo dục & sản phẩm trẻ em", why:"vui tươi, dễ tiếp cận, kích thích tò mò"},
+      {name:"Vận tải công cộng", why:"độ tương phản cao, dễ nhận diện từ xa"},
+      {name:"Năng lượng & năng lượng tái tạo", why:"liên tưởng trực tiếp đến ánh nắng, nguồn sống"},
+      {name:"Đồ ăn nhanh (phối cùng đỏ)", why:"tăng cảm giác vui vẻ, kích thích thèm ăn"},
+    ] },
+  { key:"chartreuse", name:"Vàng lục", temp:"neutral", hex:"#9ACD32",
+    psych:"Tươi mới, tự nhiên, tràn sức sống — nằm giữa vàng và lục nên mang cả hai sắc thái.",
+    industries:[
+      {name:"Thực phẩm hữu cơ & organic", why:"gợi liên tưởng tươi mới, tự nhiên"},
+      {name:"Thể thao ngoài trời", why:"năng động, gắn với thiên nhiên"},
+      {name:"Khởi nghiệp công nghệ xanh", why:"mới mẻ, khác biệt, thân thiện môi trường"},
+    ] },
+  { key:"green", name:"Lục", temp:"cool", hex:"#2F9E44",
+    psych:"Tự nhiên, an toàn, tăng trưởng — gắn liền với sức khỏe và sự ổn định về tài chính.",
+    industries:[
+      {name:"Y tế & chăm sóc sức khỏe", why:"gợi cảm giác an toàn, chữa lành"},
+      {name:"Môi trường & năng lượng bền vững", why:"biểu tượng trực tiếp của thiên nhiên"},
+      {name:"Tài chính & ngân hàng", why:"liên tưởng đến tiền bạc, tăng trưởng"},
+      {name:"Nông nghiệp & thực phẩm sạch", why:"tự nhiên, tươi, đáng tin cậy"},
+    ] },
+  { key:"teal", name:"Lục lam (Ngọc)", temp:"cool", hex:"#1B9C8E",
+    psych:"Cân bằng, sạch sẽ, đáng tin — pha giữa sự mát mẻ của lam và tươi mới của lục.",
+    industries:[
+      {name:"Y tế & nha khoa", why:"gợi cảm giác sạch sẽ, vô trùng, đáng tin"},
+      {name:"Công nghệ & SaaS", why:"hiện đại, chuyên nghiệp nhưng không cứng nhắc"},
+      {name:"Spa & chăm sóc sức khỏe tinh thần", why:"êm dịu, cân bằng, thư giãn"},
+    ] },
+  { key:"blue", name:"Lam", temp:"cool", hex:"#1D6FA5",
+    psych:"Tin cậy, chuyên nghiệp, bình tĩnh — màu được ưa chuộng bậc nhất trong môi trường doanh nghiệp.",
+    industries:[
+      {name:"Ngân hàng & tài chính", why:"tạo cảm giác an toàn, đáng tin cậy"},
+      {name:"Công nghệ & phần mềm doanh nghiệp", why:"chuyên nghiệp, ổn định"},
+      {name:"Y tế & bảo hiểm", why:"gợi sự an tâm, chăm sóc có trách nhiệm"},
+      {name:"Giáo dục", why:"nghiêm túc nhưng vẫn thân thiện"},
+    ] },
+  { key:"indigo", name:"Chàm", temp:"cool", hex:"#3B4A9E",
+    psych:"Sâu sắc, trí tuệ, sang trọng — đậm và trầm hơn lam thuần, gợi cảm giác trưởng thành.",
+    industries:[
+      {name:"Công nghệ cao cấp", why:"sang trọng, đáng tin, khác biệt với công nghệ đại trà"},
+      {name:"Giáo dục đại học & nghiên cứu", why:"nghiêm túc, trí tuệ, học thuật"},
+      {name:"Tư vấn chuyên nghiệp", why:"đĩnh đạc, đáng tin cậy ở tầm cao"},
+    ] },
+  { key:"purple", name:"Tím", temp:"cool", hex:"#6A3FA0",
+    psych:"Sang trọng, sáng tạo, huyền bí — từng gắn liền với hoàng gia do sắc tố tím xưa rất hiếm và đắt.",
+    industries:[
+      {name:"Mỹ phẩm & làm đẹp cao cấp", why:"sang trọng, khác biệt, nữ tính tinh tế"},
+      {name:"Nghệ thuật & giải trí sáng tạo", why:"phá cách, giàu trí tưởng tượng"},
+      {name:"Sản phẩm cao cấp nói chung", why:"gợi cảm giác độc quyền, đẳng cấp"},
+    ] },
+  { key:"pink", name:"Hồng", temp:"warm", hex:"#E8709A",
+    psych:"Ngọt ngào, trẻ trung, vui tươi — dịu hơn đỏ, thường gắn với sự chăm sóc và nữ tính.",
+    industries:[
+      {name:"Thời trang & làm đẹp", why:"nữ tính, trẻ trung, bắt mắt"},
+      {name:"Bánh kẹo & tráng miệng", why:"ngọt ngào, gợi cảm giác dễ chịu"},
+      {name:"Sản phẩm chăm sóc cá nhân", why:"dịu dàng, thân thiện, gần gũi"},
+    ] },
+  { key:"brown", name:"Nâu / Be", temp:"neutral", hex:"#8A6240",
+    psych:"Ấm áp, mộc mạc, đáng tin — gợi cảm giác thủ công, tự nhiên, bền vững theo thời gian.",
+    industries:[
+      {name:"Cà phê & đồ uống thủ công", why:"ấm áp, gợi liên tưởng trực tiếp đến nguyên liệu"},
+      {name:"Nội thất gỗ & thủ công mỹ nghệ", why:"mộc mạc, chất liệu tự nhiên, bền bỉ"},
+      {name:"Nông sản & thực phẩm hữu cơ", why:"gần gũi đất đai, đáng tin cậy"},
+      {name:"Thời trang bền vững", why:"tông đất, gợi cảm giác trách nhiệm với môi trường"},
+    ] },
+  { key:"neutral", name:"Đen · Trắng · Xám", temp:"neutral", hex:"#3A383F",
+    psych:"Đen: sang trọng, quyền lực. Trắng: tối giản, tinh khiết. Xám: trung tính, chuyên nghiệp.",
+    industries:[
+      {name:"Thời trang cao cấp & xa xỉ", why:"tối giản, để chất liệu và form dáng tự nói lên giá trị"},
+      {name:"Kiến trúc & nội thất tối giản", why:"tập trung vào không gian, ánh sáng, hình khối"},
+      {name:"Công nghệ cao cấp", why:"tinh gọn, hiện đại, không gây xao nhãng"},
+      {name:"Nhiếp ảnh & studio nghệ thuật", why:"trung tính, làm nền tôn tác phẩm"},
+    ] },
+];
+
+/* ================= State & render ================= */
+let query = "";
+let activeTemp = "all";
+
+function renderChips(){
+  const row = document.getElementById("chipRow");
+  const opts = [["all","Tất cả"], ...Object.entries(TEMPS)];
+  row.innerHTML = opts.map(([key,label]) =>
+    `<button type="button" class="chip${key===activeTemp ? " is-active":""}" data-temp="${key}">${label}</button>`
+  ).join("");
+  row.querySelectorAll(".chip").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      activeTemp = btn.dataset.temp;
+      renderChips();
+      renderGrid();
+    });
+  });
+}
+
+function matchesQuery(c){
+  if(!query) return true;
+  const q = query.toLowerCase();
+  if(c.name.toLowerCase().includes(q)) return true;
+  return c.industries.some(i => i.name.toLowerCase().includes(q) || i.why.toLowerCase().includes(q));
+}
+function matchesTemp(c){ return activeTemp === "all" || c.temp === activeTemp; }
+
+function renderGrid(){
+  const grid = document.getElementById("colorGrid");
+  const list = COLOR_FAMILIES.filter(c => matchesQuery(c) && matchesTemp(c));
+  document.getElementById("resultCount").textContent = `${list.length} nhóm màu`;
+
+  if(list.length === 0){
+    grid.innerHTML = `<p class="empty-state">Không tìm thấy kết quả — thử từ khóa khác.</p>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(c => `
+    <div class="color-card">
+      <div class="color-swatch-col">
+        <div class="color-dot" style="background:${c.hex}"></div>
+        <a class="color-open" href="./index.html?hex=${encodeURIComponent(c.hex.replace('#',''))}">Mở trong<br>Phòng Pha Màu →</a>
+      </div>
+      <div>
+        <h3 class="color-name">${c.name}</h3>
+        <span class="color-temp">${TEMPS[c.temp]}</span>
+        <p class="color-psych">${c.psych}</p>
+        <div class="industry-list">
+          ${c.industries.map(i => `
+            <div class="industry-item">
+              <b>${i.name}</b><span>— ${i.why}</span>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+document.getElementById("searchInput").addEventListener("input", (e)=>{
+  query = e.target.value;
+  renderGrid();
+});
+
+/* ================= Khởi động ================= */
+renderChips();
+renderGrid();
+</script>
+</body>
+</html>

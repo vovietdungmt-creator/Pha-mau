@@ -4,6 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Xếp Đúng Màu — Mini game rèn mắt màu sắc</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
@@ -162,6 +164,44 @@
   }
   .record-saved b{ color:var(--gold); font-family:'Fraunces',serif; font-size:15px; }
 
+  /* ---------- Bảng xếp hạng lớp ---------- */
+  .leaderboard-panel{ margin-top:22px; }
+  .lb-title{
+    font-family:'Fraunces',serif; font-weight:600; font-size:19px; margin:0 0 4px;
+  }
+  .lb-sub{ margin:0 0 18px; font-size:12px; color:var(--muted); }
+  .lb-list{ display:flex; flex-direction:column; gap:8px; }
+  .lb-row{
+    display:flex; align-items:center; gap:12px;
+    background:var(--panel-2); border:1px solid var(--line); border-radius:12px;
+    padding:10px 14px;
+  }
+  .lb-rank{
+    font-family:'Fraunces',serif; font-weight:700; font-size:15px;
+    width:26px; text-align:center; color:var(--muted); flex:none;
+  }
+  .lb-row:nth-child(1) .lb-rank{ color:#F4C40F; }
+  .lb-row:nth-child(2) .lb-rank{ color:#C9CDD6; }
+  .lb-row:nth-child(3) .lb-rank{ color:#D08A4B; }
+  .lb-name{ flex:1; font-size:13.5px; font-weight:500; }
+  .lb-score{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--accent); }
+  .lb-empty{ font-size:12.5px; color:var(--muted); text-align:center; padding:14px 0; }
+
+  .submit-form{
+    display:flex; gap:8px; justify-content:center; flex-wrap:wrap;
+    margin:16px 0 6px;
+  }
+  .submit-form input{
+    font-family:'Space Grotesk',sans-serif; font-size:14px;
+    background:var(--panel-2); border:1px solid var(--line); color:var(--paper);
+    border-radius:999px; padding:11px 18px; outline-offset:2px; max-width:220px;
+  }
+  .submit-form input:focus-visible{ outline:2px solid var(--accent); }
+  .submit-note{
+    font-size:11.5px; color:var(--muted); text-align:center; margin:0 0 14px;
+  }
+  .submit-note.ok{ color:var(--good); }
+
   footer{
     margin-top:50px; padding-top:20px; border-top:1px solid var(--line);
     font-size:12px; color:var(--muted); text-align:center; line-height:1.7;
@@ -176,6 +216,7 @@
     <div class="site-nav">
       <a href="./index.html" class="site-nav-btn">Phòng Pha Màu</a>
       <a href="./game-xep-mau.html" class="site-nav-btn is-active">Mini game</a>
+      <a href="./goi-y-nganh-theo-mau.html" class="site-nav-btn">Gợi ý ngành nghề</a>
     </div>
     <h1 class="title">Xếp Đúng Màu</h1>
     <p class="lede">
@@ -186,6 +227,14 @@
 
   <section class="panel" id="gamePanel"></section>
 
+  <section class="panel leaderboard-panel">
+    <h2 class="lb-title">🏆 Bảng xếp hạng lớp — Top 10</h2>
+    <p class="lb-sub">Điểm cao nhất của cả lớp, cập nhật theo thời gian thực.</p>
+    <div class="lb-list" id="leaderboardList">
+      <p class="lb-empty">Đang tải bảng xếp hạng…</p>
+    </div>
+  </section>
+
   <footer>
     Trò chơi đi kèm <a href="./index.html">Phòng Pha Màu</a> · Công cụ học tập cho sinh viên Thiết kế Đồ họa<br>
     Biên soạn bởi <strong>Giảng viên Võ Việt Dũng</strong> · Phân hiệu Khánh Hòa, Trường Đại học Tôn Đức Thắng
@@ -193,6 +242,91 @@
 </div>
 
 <script>
+/* ================================================================
+   BẢNG XẾP HẠNG CHUNG (Firebase Realtime Database)
+   ------------------------------------------------------------
+   1. Vào https://console.firebase.google.com → tạo 1 project mới (miễn phí).
+   2. Trong project, vào "Build → Realtime Database" → Create Database
+      (chọn khu vực gần VN, ví dụ Singapore) → bắt đầu ở chế độ "test mode".
+   3. Vào "Project settings" (icon bánh răng) → cuộn xuống "Your apps" →
+      bấm biểu tượng </> để tạo Web App → copy đoạn "firebaseConfig".
+   4. Dán đè lên object FIREBASE_CONFIG bên dưới (giữ nguyên dấu ngoặc).
+   5. Vào tab "Realtime Database → Rules", dán luật ở cuối comment này rồi
+      bấm "Publish".
+   6. Xong — mở lại trang, bảng xếp hạng sẽ tự hoạt động.
+
+   Luật (Rules) khuyến nghị dán vào Firebase — cho phép ai cũng đọc được,
+   nhưng chỉ ghi được điểm hợp lệ (tên ≤ 24 ký tự, điểm là số 0–100000):
+   {
+     "rules": {
+       "scores": {
+         ".read": true,
+         ".write": true,
+         "$id": {
+           ".validate": "newData.hasChildren(['name','score','ts']) && newData.child('name').isString() && newData.child('name').val().length <= 24 && newData.child('score').isNumber() && newData.child('score').val() >= 0 && newData.child('score').val() <= 100000"
+         }
+       }
+     }
+   }
+   ================================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyALfIm1fftpdcRV7-5JwFinIzZaN_i8Do8",
+  databaseURL: "https://game-xep-mau-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "game-xep-mau",
+};
+
+let firebaseReady = false;
+let scoresRef = null;
+
+function initLeaderboard(){
+  const listEl = document.getElementById("leaderboardList");
+  const notConfigured = FIREBASE_CONFIG.apiKey.includes("DÁN_API_KEY");
+  if(notConfigured){
+    listEl.innerHTML = `<p class="lb-empty">Bảng xếp hạng chung chưa được kích hoạt — xem hướng dẫn cấu hình Firebase ở đầu file mã nguồn.</p>`;
+    return;
+  }
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    scoresRef = firebase.database().ref("scores");
+    firebaseReady = true;
+    scoresRef.orderByChild("score").limitToLast(10).on("value", (snapshot)=>{
+      const rows = [];
+      snapshot.forEach((child)=>{ rows.push(child.val()); });
+      rows.sort((a,b)=> b.score - a.score);
+      renderLeaderboard(rows);
+    }, ()=>{
+      listEl.innerHTML = `<p class="lb-empty">Không tải được bảng xếp hạng — kiểm tra lại cấu hình/Rules trên Firebase.</p>`;
+    });
+  } catch(e){
+    listEl.innerHTML = `<p class="lb-empty">Không kết nối được bảng xếp hạng — kiểm tra lại FIREBASE_CONFIG.</p>`;
+  }
+}
+
+function renderLeaderboard(rows){
+  const listEl = document.getElementById("leaderboardList");
+  if(!rows.length){
+    listEl.innerHTML = `<p class="lb-empty">Chưa có ai ghi điểm — hãy là người đầu tiên!</p>`;
+    return;
+  }
+  listEl.innerHTML = rows.map((r, i) => `
+    <div class="lb-row">
+      <span class="lb-rank">${i + 1}</span>
+      <span class="lb-name">${escapeHtml(r.name || "Ẩn danh")}</span>
+      <span class="lb-score">${r.score} điểm</span>
+    </div>
+  `).join("");
+}
+
+function submitScoreToLeaderboard(name, scoreValue, levelValue){
+  if(!firebaseReady || !scoresRef) return Promise.resolve(false);
+  return scoresRef.push({
+    name: name.slice(0, 24),
+    score: scoreValue,
+    level: levelValue,
+    ts: firebase.database.ServerValue.TIMESTAMP,
+  }).then(()=> true).catch(()=> false);
+}
+
 /* ================= Lõi màu (HSL -> RGB -> HEX) ================= */
 function hslToRgb(h,s,l){
   const hh=((h%360)+360)%360;
@@ -471,43 +605,64 @@ function endGame(){
     best = score;
     localStorage.setItem("xepmau_best", String(best));
   }
+  const savedPlayerName = localStorage.getItem("xepmau_playername") || bestName || "";
+
   panel.innerHTML = `
     <div class="start-screen">
       <p class="eyebrow" style="margin-bottom:2px;">Kết thúc lượt chơi</p>
       <div class="gameover-score${isRecord ? " record" : ""}">${score}</div>
       <p class="gameover-tag" id="gameoverTag">${
         isRecord
-          ? "🏆 Kỷ lục mới!"
-          : `Kỷ lục hiện tại: ${best} điểm${bestName ? " — bởi " + escapeHtml(bestName) : ""}`
+          ? "🏆 Kỷ lục mới trên máy này!"
+          : `Kỷ lục trên máy này: ${best} điểm${bestName ? " — bởi " + escapeHtml(bestName) : ""}`
       }</p>
-      ${isRecord ? `
-      <div class="record-form" id="recordForm">
-        <input type="text" id="recordNameInput" placeholder="Nhập tên của bạn" maxlength="24" value="${escapeHtml(bestName)}">
-        <button class="big-btn" id="saveRecordBtn">Lưu tên</button>
-      </div>` : ""}
-      <button class="big-btn${isRecord ? " secondary" : ""}" id="retryBtn">Chơi lại</button>
+
+      ${firebaseReady ? `
+      <div class="submit-form" id="submitForm">
+        <input type="text" id="submitNameInput" placeholder="Nhập tên để lên bảng xếp hạng" maxlength="24" value="${escapeHtml(savedPlayerName)}">
+        <button class="big-btn" id="submitScoreBtn">Gửi điểm</button>
+      </div>
+      <p class="submit-note" id="submitNote">Gửi điểm ${score} lên bảng xếp hạng chung của lớp.</p>
+      ` : ""}
+
+      <button class="big-btn${isRecord || firebaseReady ? " secondary" : ""}" id="retryBtn">Chơi lại</button>
     </div>
   `;
-  if(isRecord){
-    const input = document.getElementById("recordNameInput");
-    const saveBtn = document.getElementById("saveRecordBtn");
+
+  if(firebaseReady){
+    const input = document.getElementById("submitNameInput");
+    const submitBtn = document.getElementById("submitScoreBtn");
+    const note = document.getElementById("submitNote");
     input.focus();
     input.select();
-    const saveName = ()=>{
+    const doSubmit = ()=>{
       const name = input.value.trim().slice(0, 24) || "Ẩn danh";
+      localStorage.setItem("xepmau_playername", name);
       bestName = name;
-      localStorage.setItem("xepmau_best_name", name);
-      document.getElementById("recordForm").outerHTML =
-        `<p class="record-saved">Đã lưu kỷ lục cho <b>${escapeHtml(name)}</b> 🎉</p>`;
+      if(isRecord) localStorage.setItem("xepmau_best_name", name);
+      submitBtn.disabled = true;
+      note.textContent = "Đang gửi...";
+      submitScoreToLeaderboard(name, score, level).then((ok)=>{
+        if(ok){
+          document.getElementById("submitForm").outerHTML = "";
+          note.textContent = `Đã gửi điểm cho ${name} 🎉 — kiểm tra bảng xếp hạng bên dưới.`;
+          note.classList.add("ok");
+        } else {
+          note.textContent = "Gửi thất bại — kiểm tra kết nối mạng rồi thử lại.";
+          submitBtn.disabled = false;
+        }
+      });
     };
-    saveBtn.addEventListener("click", saveName);
-    input.addEventListener("keydown", (e)=>{ if(e.key === "Enter") saveName(); });
+    submitBtn.addEventListener("click", doSubmit);
+    input.addEventListener("keydown", (e)=>{ if(e.key === "Enter") doSubmit(); });
   }
+
   document.getElementById("retryBtn").addEventListener("click", renderStartScreen);
 }
 
 /* ================= Khởi động ================= */
 renderStartScreen();
+initLeaderboard();
 </script>
 </body>
 </html>

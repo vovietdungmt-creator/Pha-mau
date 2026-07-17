@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Phòng Pha Màu — Học pha màu qua tương tác</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root{
+    --ink:#121116;
+    --panel:#1B1A20;
+    --panel-2:#201F26;
+    --line:#322F3A;
+    --paper:#ECE7DD;
+    --paper-2:#DCD5C4;
+    --muted:#918E9C;
+    --muted-on-paper:#6B6658;
+    --accent-rgb:#5EEAD4;
+    --accent-ryb:#D9A927;
+    --accent:var(--accent-rgb);
+    --good:#7FD858;
+  }
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    font-family:'Space Grotesk',sans-serif;
+    background:var(--ink);
+    color:var(--paper);
+    -webkit-font-smoothing:antialiased;
+  }
+  [data-app-mode="ryb"]{ --accent:var(--accent-ryb); }
+
+  .page{ max-width:1000px; margin:0 auto; padding:56px 22px 90px; }
+
+  a{ color:inherit; }
+
+  /* ---------- Hero ---------- */
+  .hero{ max-width:640px; margin-bottom:54px; }
+  .site-nav{
+    display:inline-flex; padding:4px; background:var(--panel);
+    border:1px solid var(--line); border-radius:999px; gap:4px;
+    margin-bottom:22px;
+  }
+  .site-nav-btn{
+    font-family:'Space Grotesk',sans-serif; font-size:13px; font-weight:500;
+    color:var(--muted); text-decoration:none;
+    padding:8px 18px; border-radius:999px;
+    transition:color .15s ease, background .15s ease;
+  }
+  .site-nav-btn.is-active{ background:var(--accent-rgb); color:#121116; }
+  .site-nav-btn:not(.is-active):hover{ color:var(--paper); }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 12px;
+  }
+  h1.title{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:clamp(34px,6vw,54px);
+    line-height:1.04;
+    margin:0 0 16px;
+    letter-spacing:-0.01em;
+  }
+  .lede{ font-size:15.5px; line-height:1.6; color:var(--muted); margin:0 0 26px; max-width:54ch; }
+  .cta-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .cta{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--accent-rgb);
+    color:#121116;
+    font-weight:600;
+    font-size:14px;
+    padding:12px 22px;
+    border-radius:999px;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+  }
+  .cta-secondary{
+    background:var(--panel); color:var(--paper); border:1px solid var(--line);
+  }
+  .cta-secondary:hover{ border-color:var(--accent-ryb); }
+
+  /* ---------- Intro: phương trình pha màu ---------- */
+  .intro-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    margin-bottom:60px;
+  }
+  @media (max-width:720px){ .intro-grid{ grid-template-columns:1fr; } }
+
+  .intro-card{
+    border-radius:20px;
+    padding:26px 24px 28px;
+    border:1px solid var(--line);
+  }
+  .intro-card.is-dark{ background:var(--panel); }
+  .intro-card.is-light{ background:var(--paper); color:var(--ink); }
+  .intro-card h3{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:19px;
+    margin:0 0 6px;
+  }
+  .intro-card .intro-desc{
+    font-size:13px;
+    line-height:1.55;
+    margin:0 0 20px;
+  }
+  .intro-card.is-dark .intro-desc{ color:var(--muted); }
+  .intro-card.is-light .intro-desc{ color:var(--muted-on-paper); }
+
+  .eq-list{ display:flex; flex-direction:column; gap:14px; }
+  .eq-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .eq-chip-wrap{ display:flex; flex-direction:column; align-items:center; gap:5px; }
+  .eq-chip{
+    width:38px; height:38px; border-radius:50%;
+    border:1px solid rgba(0,0,0,0.12);
+    flex:none;
+  }
+  .intro-card.is-dark .eq-chip{ border-color:rgba(255,255,255,0.14); }
+  .eq-chip-label{ font-family:'IBM Plex Mono',monospace; font-size:10px; }
+  .intro-card.is-dark .eq-chip-label{ color:var(--muted); }
+  .intro-card.is-light .eq-chip-label{ color:var(--muted-on-paper); }
+  .eq-op{ font-family:'IBM Plex Mono',monospace; font-size:16px; opacity:.6; }
+
+  /* ---------- Tool layout ---------- */
+  .tool-head{ margin-bottom:26px; }
+  .tool-head h2{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:26px;
+    margin:0 0 8px;
+  }
+  .tool-head p{ margin:0; font-size:14px; color:var(--muted); max-width:52ch; }
+
+  .cms-toggle{
+    display:inline-flex;
+    margin-top:20px;
+    padding:4px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:999px;
+    gap:4px;
+  }
+  .cms-toggle button{
+    appearance:none; border:none; background:transparent;
+    color:var(--muted);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:13.5px; font-weight:500;
+    padding:9px 18px; border-radius:999px; cursor:pointer;
+    transition:color .2s ease, background .2s ease;
+  }
+  .cms-toggle button[data-active="true"]{ background:var(--accent); color:#121116; }
+  .cms-toggle button:focus-visible,
+  .cms-copy:focus-visible,
+  .cms-slider-track:focus-visible,
+  .challenge-btn:focus-visible,
+  .cta:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .cms-hint{ margin:14px 2px 0; font-size:12.5px; color:var(--muted); font-style:italic; }
+
+  .cms-grid{ margin-top:28px; display:grid; grid-template-columns:1.1fr 1fr; gap:20px; align-items:stretch; }
+  @media (max-width:680px){ .cms-grid{ grid-template-columns:1fr; } }
+
+  .cms-panel{ background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:26px 24px; }
+
+  .cms-slider{ margin-bottom:26px; }
+  .cms-slider:last-child{ margin-bottom:0; }
+  .cms-slider-top{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px; }
+  .cms-slider-name{ display:flex; align-items:center; gap:9px; font-size:13.5px; font-weight:500; }
+  .cms-dab{ width:12px; height:12px; border-radius:50%; display:inline-block; box-shadow:0 0 0 3px rgba(255,255,255,0.05); }
+  .cms-slider-value{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--muted); }
+
+  .cms-slider-track{
+    position:relative;
+    height:14px;
+    border-radius:999px;
+    background:var(--line);
+    cursor:grab;
+    touch-action:none;
+    outline-offset:4px;
+  }
+  .cms-slider-track:active{ cursor:grabbing; }
+  .cms-slider-track:focus-visible{ outline:2px solid var(--accent); }
+  .cms-slider-fill{
+    position:absolute; top:0; left:0; bottom:0; border-radius:999px;
+    opacity:.55; pointer-events:none;
+  }
+  .cms-slider-thumb{
+    position:absolute; top:50%; width:22px; height:22px; border-radius:50%;
+    border:3px solid var(--ink); box-shadow:0 0 0 1px var(--line);
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .cms-slider-track.is-dragging .cms-slider-thumb{
+    transform:translate(-50%,-50%) scale(1.18);
+    box-shadow:0 0 0 5px rgba(255,255,255,0.08);
+  }
+
+  .cms-result{ display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+  .cms-swatch-wrap{ position:relative; width:190px; height:190px; }
+  .cms-swatch{
+    width:190px; height:190px; border-radius:50%;
+    border:1px solid rgba(255,255,255,0.08);
+    transition:background-color .15s ease, box-shadow .15s ease;
+    position:relative;
+  }
+  .cms-swatch::after{
+    content:""; position:absolute; inset:14px 14px auto 14px; height:42%;
+    border-radius:50%;
+    background:radial-gradient(closest-side, rgba(255,255,255,0.22), transparent 75%);
+    pointer-events:none;
+  }
+
+  .cms-codes{ margin-top:22px; width:100%; }
+  .cms-hex-row{ display:flex; align-items:center; justify-content:center; gap:10px; }
+  .cms-hex{ font-family:'IBM Plex Mono',monospace; font-size:22px; letter-spacing:.02em; }
+  .cms-copy{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.05em;
+    background:var(--panel-2); border:1px solid var(--line); color:var(--muted);
+    border-radius:8px; padding:5px 9px; cursor:pointer;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .cms-copy:hover{ color:var(--paper); border-color:var(--accent); }
+  .cms-rgb-line{ margin-top:6px; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--muted); }
+
+  .cms-recipe{
+    margin-top:20px; width:100%; border-top:1px dashed var(--line); padding-top:16px;
+    display:flex; justify-content:center; gap:18px; flex-wrap:wrap;
+  }
+  .cms-recipe-item{ display:flex; align-items:center; gap:7px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); }
+  .cms-recipe-dab{ width:9px; height:9px; border-radius:50%; }
+
+  .cms-scale{ margin-top:18px; width:100%; }
+  .cms-scale-top{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:9px; }
+  .cms-scale-label{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+  .cms-scale-name{ font-family:'Fraunces',serif; font-weight:600; font-size:16px; color:var(--paper); }
+  .cms-scale-bar{
+    position:relative; height:12px; border-radius:999px;
+    background:linear-gradient(to right, hsl(0,82%,52%), hsl(60,82%,52%), hsl(120,82%,45%), hsl(180,82%,45%), hsl(240,82%,55%), hsl(300,82%,52%), hsl(360,82%,52%));
+    border:1px solid rgba(255,255,255,0.08);
+    cursor:grab;
+    touch-action:none;
+    outline-offset:4px;
+  }
+  .cms-scale-bar:active{ cursor:grabbing; }
+  .cms-scale-bar:focus-visible{ outline:2px solid var(--accent); }
+  .cms-scale-marker{
+    position:absolute; top:50%; width:14px; height:14px; border-radius:50%;
+    background:var(--ink); border:3px solid var(--paper);
+    transform:translate(-50%,-50%); box-shadow:0 0 0 1px rgba(0,0,0,0.4);
+    transition:left .15s ease, transform .12s ease;
+    pointer-events:none;
+  }
+  .cms-scale-bar.is-dragging .cms-scale-marker{ transform:translate(-50%,-50%) scale(1.25); }
+  .cms-scale-tip{ margin:8px 2px 0; font-size:11px; color:var(--muted); font-style:italic; }
+
+  /* ---------- Harmony ---------- */
+  .cms-harmony{ margin-top:20px; }
+  .cms-harmony-head{ margin-bottom:18px; }
+  .cms-harmony-title{ font-family:'Fraunces',serif; font-weight:600; font-size:21px; margin:0 0 6px; }
+  .cms-harmony-sub{ margin:0; font-size:13px; color:var(--muted); max-width:60ch; }
+  .cms-harmony-row{
+    display:grid; grid-template-columns:1fr 1fr; gap:22px; align-items:center;
+    padding:18px 0; border-top:1px solid var(--line);
+  }
+  .cms-harmony-row:first-child{ border-top:none; padding-top:4px; }
+  @media (max-width:680px){ .cms-harmony-row{ grid-template-columns:1fr; gap:12px; } }
+  .cms-harmony-label{ display:block; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13.5px; color:var(--paper); margin-bottom:6px; }
+  .cms-harmony-note{ margin:0; font-size:12.5px; line-height:1.55; color:var(--muted); }
+  .cms-harmony-swatches{ display:flex; gap:12px; flex-wrap:wrap; }
+  .cms-harmony-swatch{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .cms-harmony-dot{ width:38px; height:38px; border-radius:50%; border:1px solid rgba(255,255,255,0.12); }
+  .cms-harmony-hex{ font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted); }
+
+  .cms-value{ margin-top:20px; }
+  .value-block{ margin-top:20px; }
+  .value-block:first-of-type{ margin-top:22px; }
+  .value-steps{
+    display:flex; gap:6px; margin-top:10px;
+  }
+  .value-step{
+    flex:1; height:34px; border-radius:8px;
+    border:1px solid rgba(255,255,255,0.08);
+    display:flex; align-items:flex-end; justify-content:center;
+    padding-bottom:4px;
+  }
+  .value-step span{
+    font-family:'IBM Plex Mono',monospace; font-size:9.5px;
+  }
+  .value-live-row{
+    display:flex; align-items:center; gap:14px; margin-top:16px;
+  }
+  .value-live-swatch{
+    width:44px; height:44px; border-radius:12px; flex:none;
+    border:1px solid rgba(255,255,255,0.12);
+  }
+  .value-live-text b{ font-family:'Fraunces',serif; font-size:14.5px; display:block; margin-bottom:3px; }
+  .value-live-text span{ font-size:12px; color:var(--muted); line-height:1.5; }
+  .value-bar{
+    position:relative; height:12px; border-radius:999px; margin-top:14px;
+    background:linear-gradient(to right, #060606, #ffffff);
+    border:1px solid rgba(255,255,255,0.08);
+    cursor:grab; touch-action:none; outline-offset:4px;
+  }
+  .value-bar:active{ cursor:grabbing; }
+  .value-bar:focus-visible{ outline:2px solid var(--accent); }
+  .value-marker{
+    position:absolute; top:50%; width:14px; height:14px; border-radius:50%;
+    background:var(--accent); border:3px solid var(--ink);
+    transform:translate(-50%,-50%); box-shadow:0 0 0 1px rgba(0,0,0,0.4);
+    transition:left .15s ease, transform .12s ease;
+  }
+  .value-bar.is-dragging .value-marker{ transform:translate(-50%,-50%) scale(1.25); }
+
+  .contrast-row{ display:flex; gap:14px; margin-top:14px; flex-wrap:wrap; }
+  .contrast-card{
+    flex:1; min-width:190px;
+    background:var(--panel-2); border:1px solid var(--line); border-radius:14px;
+    padding:16px; display:flex; align-items:center; gap:14px;
+  }
+  .contrast-chip{
+    width:52px; height:52px; border-radius:10px; flex:none;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces',serif; font-weight:700; font-size:20px;
+  }
+  .contrast-info{ font-size:12px; }
+  .contrast-info b{ display:block; font-family:'IBM Plex Mono',monospace; font-size:15px; margin-bottom:3px; }
+  .contrast-verdict{ font-weight:600; }
+  .contrast-verdict.ok{ color:var(--good); }
+  .contrast-verdict.no{ color:#E8604C; }
+
+  .pickable{
+    cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .pickable:hover{ transform:scale(1.12); box-shadow:0 0 0 3px rgba(255,255,255,0.14); }
+  .pickable:active{ transform:scale(0.96); }
+  .eq-chip.pickable:hover, .cms-harmony-dot.pickable:hover, .value-step.pickable:hover{
+    box-shadow:0 0 0 3px var(--accent);
+  }
+
+  .hs-grid{ display:grid; grid-template-columns:1fr 1fr; gap:26px; margin-top:20px; }
+  @media (max-width:680px){ .hs-grid{ grid-template-columns:1fr; } }
+  .hs-col{ margin-top:20px; max-width:460px; }
+  .cms-hue .hs-col, .cms-sat .hs-col{ margin-left:auto; margin-right:auto; }
+
+  .hue-wheel{
+    position:relative; width:132px; height:132px; border-radius:50%;
+    margin:16px auto 0;
+    background:conic-gradient(from 0deg, hsl(0,80%,55%), hsl(60,80%,55%), hsl(120,80%,45%), hsl(180,80%,45%), hsl(240,80%,55%), hsl(300,80%,55%), hsl(360,80%,55%));
+    box-shadow:0 0 0 1px rgba(255,255,255,0.08) inset;
+    cursor:grab; touch-action:none; outline-offset:6px;
+  }
+  .hue-wheel:active{ cursor:grabbing; }
+  .hue-wheel:focus-visible{ outline:2px solid var(--accent); }
+  .hue-wheel::after{
+    content:""; position:absolute; inset:17px; border-radius:50%; background:var(--panel);
+  }
+  .hue-wheel-pivot{ position:absolute; inset:0; transition:transform .12s ease; }
+  .hue-wheel-marker{
+    position:absolute; top:1px; left:50%; width:13px; height:13px; border-radius:50%;
+    background:var(--paper); border:3px solid var(--ink);
+    transform:translate(-50%,-50%); box-shadow:0 0 0 1px rgba(0,0,0,0.35);
+    transition:transform .12s ease;
+  }
+  .hue-wheel.is-dragging .hue-wheel-marker{ transform:translate(-50%,-50%) scale(1.3); }
+
+  .sat-bar{
+    position:relative; height:12px; border-radius:999px; margin-top:16px;
+    border:1px solid rgba(255,255,255,0.08);
+    cursor:grab; touch-action:none; outline-offset:4px;
+  }
+  .sat-bar:active{ cursor:grabbing; }
+  .sat-bar:focus-visible{ outline:2px solid var(--accent); }
+  .sat-marker{
+    position:absolute; top:50%; width:14px; height:14px; border-radius:50%;
+    background:var(--ink); border:3px solid var(--paper);
+    transform:translate(-50%,-50%); box-shadow:0 0 0 1px rgba(0,0,0,0.4);
+    transition:left .15s ease, transform .12s ease;
+  }
+  .sat-bar.is-dragging .sat-marker{ transform:translate(-50%,-50%) scale(1.25); }
+
+  .hs-badge-row{ margin-top:14px; text-align:center; }
+  .hs-badge-row b{ display:block; font-family:'Fraunces',serif; font-size:15.5px; margin-bottom:3px; }
+  .hs-badge-row span{ font-size:11.5px; color:var(--muted); }
+  .hs-app{ margin:16px 0 0; font-size:12px; color:var(--muted); line-height:1.55; }
+  .hs-app b{ color:var(--paper); font-weight:600; }
+
+  .camera-body{ margin-top:18px; }
+  .cms-camera{ margin-top:56px; }
+  .camera-hint{ margin:10px 2px 0; font-size:12px; color:var(--muted); font-style:italic; }
+  .camera-hint.is-error{ color:#E8604C; font-style:normal; }
+
+  .camera-live{
+    position:relative; width:100%; max-width:420px; margin:0 auto;
+    border-radius:16px; overflow:hidden; border:1px solid var(--line);
+    background:#000; aspect-ratio:4/3;
+  }
+  .camera-live video{ width:100%; height:100%; object-fit:cover; display:block; }
+  .camera-reticle{
+    position:absolute; top:50%; left:50%; width:34px; height:34px;
+    transform:translate(-50%,-50%); border-radius:50%;
+    border:2px solid #fff; box-shadow:0 0 0 2px rgba(0,0,0,0.45), 0 0 0 999px rgba(0,0,0,0.15);
+    pointer-events:none;
+  }
+
+  .camera-result{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    margin-top:18px; max-width:420px; margin-left:auto; margin-right:auto;
+  }
+  .camera-swatch{
+    width:46px; height:46px; border-radius:12px; flex:none;
+    border:1px solid rgba(255,255,255,0.15);
+  }
+  .camera-info{ flex:1 1 140px; }
+  .camera-info b{ display:block; font-family:'IBM Plex Mono',monospace; font-size:15px; margin-bottom:2px; }
+  .camera-info span{ font-size:11.5px; color:var(--muted); }
+  .camera-actions{ display:flex; gap:8px; width:100%; justify-content:center; margin-top:14px; }
+
+  /* ---------- Target banner (thử thách đang chọn) ---------- */
+  .target-banner{
+    display:none;
+    margin-top:22px;
+    padding:16px 18px;
+    border-radius:14px;
+    border:1px dashed var(--accent);
+    background:rgba(217,169,39,0.06);
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .target-banner.is-visible{ display:flex; }
+  .target-banner-dot{ width:34px; height:34px; border-radius:50%; flex:none; border:1px solid rgba(255,255,255,0.15); }
+  .target-banner-text{ flex:1 1 160px; }
+  .target-banner-text b{ font-family:'Fraunces',serif; font-size:15px; }
+  .target-banner-text span{ display:block; font-size:11.5px; color:var(--muted); margin-top:2px; }
+  .target-banner-actions{ display:flex; gap:8px; }
+  .tb-btn{
+    font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:600;
+    border-radius:8px; padding:8px 14px; cursor:pointer; border:1px solid var(--line);
+    background:var(--panel-2); color:var(--paper);
+  }
+  .tb-btn.primary{ background:var(--accent); color:#121116; border-color:transparent; }
+  .target-banner-feedback{
+    width:100%; font-size:12.5px; margin-top:4px; font-family:'IBM Plex Mono',monospace;
+  }
+  .target-banner-feedback.ok{ color:var(--good); }
+  .target-banner-feedback.no{ color:#E8604C; }
+
+  /* ---------- Challenges section ---------- */
+  .challenges{ margin-top:64px; }
+  .challenges-head h2{ font-family:'Fraunces',serif; font-weight:600; font-size:26px; margin:0 0 8px; }
+  .challenges-head p{ margin:0 0 18px; font-size:14px; color:var(--muted); max-width:56ch; }
+  .progress-wrap{ display:flex; align-items:center; gap:12px; margin-bottom:24px; }
+  .progress-track{ flex:1; height:8px; border-radius:999px; background:var(--panel); border:1px solid var(--line); overflow:hidden; }
+  .progress-bar{ height:100%; background:var(--accent-rgb); width:0%; transition:width .3s ease; }
+  .progress-text{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--muted); white-space:nowrap; }
+
+  .challenge-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:760px){ .challenge-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:520px){ .challenge-grid{ grid-template-columns:1fr; } }
+
+  .challenge-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:18px; display:flex; flex-direction:column; gap:12px;
+    position:relative;
+  }
+  .challenge-card.is-done{ border-color:var(--good); }
+  .challenge-top{ display:flex; align-items:center; gap:12px; }
+  .challenge-dot{ width:40px; height:40px; border-radius:50%; flex:none; border:1px solid rgba(255,255,255,0.12); }
+  .challenge-name{ font-family:'Fraunces',serif; font-size:15px; font-weight:600; }
+  .challenge-tag{
+    display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:9.5px;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--muted);
+    margin-top:2px;
+  }
+  .challenge-check{
+    position:absolute; top:14px; right:14px; font-size:14px; color:var(--good);
+    display:none; font-family:'IBM Plex Mono',monospace;
+  }
+  .challenge-card.is-done .challenge-check{ display:block; }
+  .challenge-btn{
+    font-family:'Space Grotesk',sans-serif; font-size:12.5px; font-weight:600;
+    background:var(--panel-2); border:1px solid var(--line); color:var(--paper);
+    border-radius:9px; padding:9px 12px; cursor:pointer; text-align:center;
+  }
+  .challenge-btn:hover{ border-color:var(--accent-rgb); }
+
+  footer{ margin-top:70px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; color:var(--muted); text-align:center; line-height:1.7; }
+  footer strong{ color:var(--paper); font-weight:500; }
+
+  .float-swatch{
+    position:fixed; bottom:18px; right:18px; z-index:60;
+    display:flex; align-items:center; gap:6px;
+    background:var(--panel); border:1px solid var(--line); border-radius:999px;
+    padding:7px 7px;
+    box-shadow:0 10px 28px rgba(0,0,0,0.4);
+    opacity:0; transform:translateY(14px) scale(0.94);
+    pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+  }
+  .float-swatch.is-visible{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+  .float-swatch-clickzone{
+    display:flex; align-items:center; gap:10px; cursor:pointer;
+    padding:0 8px 0 0; border-radius:999px;
+  }
+  .float-swatch-clickzone:hover .float-swatch-dot{ box-shadow:0 0 0 3px var(--accent); }
+  .float-swatch-dot{
+    width:36px; height:36px; border-radius:50%; flex:none;
+    border:1px solid rgba(255,255,255,0.15);
+    box-shadow:0 0 0 3px rgba(255,255,255,0.04) inset;
+    transition:box-shadow .15s ease;
+  }
+  .float-swatch-hex{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--paper); }
+  .float-cam-btn{
+    appearance:none; border:none; cursor:pointer;
+    width:36px; height:36px; border-radius:50%; flex:none;
+    background:var(--panel-2); border:1px solid var(--line);
+    font-size:15px; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+    transition:border-color .15s ease, transform .12s ease;
+  }
+  .float-cam-btn:hover{ border-color:var(--accent-rgb); transform:scale(1.06); }
+  .float-cam-btn:active{ transform:scale(0.95); }
+  @media (max-width:520px){
+    .float-swatch{ bottom:14px; right:14px; padding:6px; }
+    .float-swatch-dot, .float-cam-btn{ width:30px; height:30px; }
+  }
+</style>
+</head>
+<body data-app-mode="rgb">
+<div class="float-swatch" id="floatSwatch">
+  <span class="float-swatch-clickzone" id="floatSwatchClickzone" title="Bấm để quay lại công cụ pha màu">
+    <span class="float-swatch-dot" id="floatSwatchDot"></span>
+    <span class="float-swatch-hex" id="floatSwatchHex">#000000</span>
+  </span>
+  <button class="float-cam-btn" id="floatCamBtn" type="button" title="Lấy màu bằng camera" aria-label="Lấy màu bằng camera">📷</button>
+</div>
+<div class="page">
+
+  <header class="hero">
+    <div class="site-nav">
+      <a href="./index.html" class="site-nav-btn is-active">Phòng Pha Màu</a>
+      <a href="./game-xep-mau.html" class="site-nav-btn">Mini game</a>
+      <a href="./goi-y-nganh-theo-mau.html" class="site-nav-btn">Gợi ý ngành nghề</a>
+    </div>
+    <p class="eyebrow">Thiết kế đồ họa · Lý thuyết màu</p>
+    <h1 class="title">Phòng Pha Màu</h1>
+    <p class="lede">
+      Ánh sáng và sắc tố pha màu theo hai nguyên lý ngược nhau. Kéo thanh trượt,
+      quan sát màu đổi theo thời gian thực, và thử vượt qua vài thử thách nhỏ để
+      nắm chắc lý thuyết màu qua tương tác thay vì học thuộc.
+    </p>
+    <div class="cta-row">
+      <a href="#tool" class="cta">Bắt đầu pha màu ↓</a>
+      <a href="./game-xep-mau.html" class="cta cta-secondary">🎮 Chơi mini game xếp màu</a>
+    </div>
+  </header>
+
+  <section class="intro-grid" aria-label="Giới thiệu nguyên lý pha màu">
+    <div class="intro-card is-dark">
+      <h3>Ánh sáng · Cộng màu (RGB)</h3>
+      <p class="intro-desc">
+        Màn hình phát ra ánh sáng Đỏ – Lục – Lam. Cộng thêm ánh sáng thì càng
+        sáng hơn. Không có ánh sáng nào bật lên → màu đen.
+      </p>
+      <div class="eq-list" id="eqRgb"></div>
+    </div>
+    <div class="intro-card is-light">
+      <h3>Sắc tố · Trừ màu (RYB)</h3>
+      <p class="intro-desc">
+        Màu vẽ hấp thụ bớt ánh sáng, chỉ phản chiếu lại một phần. Trộn thêm sắc
+        tố thì càng tối hơn. Không có sắc tố nào → giấy trắng.
+      </p>
+      <div class="eq-list" id="eqRyb"></div>
+    </div>
+  </section>
+
+  <section class="tool" id="tool">
+    <div class="tool-head">
+      <h2>Công cụ pha màu</h2>
+      <p>Chọn chế độ, kéo thanh trượt để pha màu và đọc mã màu ngay bên dưới.</p>
+      <div class="cms-toggle" role="tablist" aria-label="Chọn chế độ pha màu" id="modeToggle">
+        <button type="button" data-mode="rgb" role="tab">Ánh sáng · RGB</button>
+        <button type="button" data-mode="ryb" role="tab">Sắc tố · RYB</button>
+      </div>
+      <p class="cms-hint" id="modeHint"></p>
+    </div>
+
+    <div class="cms-grid">
+      <section class="cms-panel" id="sliderPanel"></section>
+
+      <section class="cms-panel cms-result">
+        <div class="cms-swatch-wrap">
+          <div class="cms-swatch" id="swatch"></div>
+        </div>
+
+        <div class="cms-codes">
+          <div class="cms-hex-row">
+            <span class="cms-hex" id="hexOut">#000000</span>
+            <button class="cms-copy" id="copyBtn" type="button">CHÉP</button>
+          </div>
+          <p class="cms-rgb-line" id="rgbOut">rgb(0, 0, 0)</p>
+        </div>
+
+        <div class="cms-recipe" id="recipeOut"></div>
+
+        <div class="cms-scale">
+          <div class="cms-scale-top">
+            <span class="cms-scale-label">Thang nhận biết màu</span>
+            <span class="cms-scale-name" id="nameOut">—</span>
+          </div>
+          <div class="cms-scale-bar" id="scaleBar" role="slider" tabindex="0"
+               aria-label="Dò tên màu theo vòng thuần sắc" aria-orientation="horizontal"
+               aria-valuemin="0" aria-valuemax="360">
+            <div class="cms-scale-marker" id="scaleMarker"></div>
+          </div>
+          <p class="cms-scale-tip">Kéo hoặc bấm vào thanh để dò tên các màu khác trên vòng thuần sắc.</p>
+        </div>
+
+        <div class="target-banner" id="targetBanner">
+          <div class="target-banner-dot" id="targetDot"></div>
+          <div class="target-banner-text">
+            <b>Mục tiêu: <span id="targetName"></span></b>
+            <span>Kéo thanh trượt cho tới khi màu khớp, rồi bấm Kiểm tra.</span>
+          </div>
+          <div class="target-banner-actions">
+            <button class="tb-btn" id="hintBtn" type="button">Gợi ý %</button>
+            <button class="tb-btn primary" id="checkBtn" type="button">Kiểm tra</button>
+          </div>
+          <p class="target-banner-feedback" id="targetFeedback"></p>
+        </div>
+      </section>
+    </div>
+
+    <section class="cms-panel cms-hue">
+      <div class="cms-value-head">
+        <h2 class="cms-harmony-title">Kiến thức về Sắc (Hue)</h2>
+        <p class="cms-harmony-sub">
+          Sắc là vị trí góc trên vòng thuần sắc (0°–360°) — chính là bản chất "màu gì"
+          của một màu: đỏ, cam, vàng, lục, lam, tím... Chỉ cần xoay góc này, màu sẽ đổi
+          hẳn tông dù giữ nguyên độ bão hòa và sắc độ.
+        </p>
+      </div>
+      <div class="value-block hs-col">
+        <div class="hue-wheel" id="hueWheel" role="slider" tabindex="0"
+             aria-label="Dò sắc trên vòng thuần sắc" aria-valuemin="0" aria-valuemax="360">
+          <div class="hue-wheel-pivot" id="hueWheelPivot">
+            <div class="hue-wheel-marker"></div>
+          </div>
+        </div>
+        <div class="hs-badge-row">
+          <b id="hueBadge">—</b>
+          <span>Góc sắc của màu vừa pha trên vòng thuần sắc.</span>
+        </div>
+        <p class="hs-app">
+          <b>Ứng dụng:</b> chọn một sắc làm tông chủ đạo cho thương hiệu, rồi dùng các
+          màu bổ sung/tương đồng (mục Hòa sắc bên dưới) để mở rộng bảng màu quanh sắc đó.
+        </p>
+      </div>
+    </section>
+
+    <section class="cms-panel cms-sat">
+      <div class="cms-value-head">
+        <h2 class="cms-harmony-title">Kiến thức về Độ bão hòa (Saturation)</h2>
+        <p class="cms-harmony-sub">
+          Độ bão hòa là mức độ "thuần khiết" của sắc đó: 0% là xám hoàn toàn (mất hết
+          sắc), 100% là rực rỡ nhất có thể ở cùng sắc và sắc độ đó. Cùng một sắc, giảm
+          độ bão hòa sẽ ra các tông "tắt" (muted) êm dịu hơn.
+        </p>
+      </div>
+      <div class="value-block hs-col">
+        <div class="sat-bar" id="satBar" role="slider" tabindex="0"
+             aria-label="Dò độ bão hòa" aria-valuemin="0" aria-valuemax="100">
+          <div class="sat-marker" id="satMarker"></div>
+        </div>
+        <div class="hs-badge-row">
+          <b id="satBadge">—</b>
+          <span>Độ bão hòa của màu vừa pha, giữ nguyên sắc và sắc độ hiện tại.</span>
+        </div>
+        <p class="hs-app">
+          <b>Ứng dụng:</b> nền và vùng chữ dài nên giảm bão hòa để dịu mắt khi đọc lâu;
+          giữ bão hòa cao cho nút bấm, điểm nhấn cần thu hút sự chú ý ngay lập tức.
+        </p>
+      </div>
+    </section>
+
+    <section class="cms-panel cms-harmony">
+      <div class="cms-harmony-head">
+        <h2 class="cms-harmony-title">Hòa sắc &amp; Ứng dụng</h2>
+        <p class="cms-harmony-sub">
+          Các phối màu gợi ý, suy ra từ vị trí của màu vừa pha trên vòng thuần sắc —
+          tham khảo khi lên bảng màu cho thiết kế.
+        </p>
+      </div>
+      <div class="cms-harmony-list" id="harmonyList"></div>
+    </section>
+
+    <section class="cms-panel cms-value">
+      <div class="cms-value-head">
+        <h2 class="cms-harmony-title">Kiến thức về Sắc độ (Value)</h2>
+        <p class="cms-harmony-sub">
+          Sắc độ là độ đậm–nhạt của một màu khi bỏ qua sắc (hue) và độ bão hòa —
+          chính là thứ còn lại khi nhìn ảnh ở chế độ đen trắng. Một bố cục có
+          sắc độ tốt vẫn "đọc" được dù chuyển sang đen trắng; nếu chỉ khác màu
+          mà sắc độ bằng nhau, các mảng sẽ bị dính vào nhau, mất khối.
+        </p>
+      </div>
+
+      <div class="value-block">
+        <span class="cms-scale-label">Thang sắc độ cổ điển (9 bậc, đen → trắng)</span>
+        <div class="value-steps" id="valueSteps"></div>
+
+        <div class="value-live-row">
+          <div class="value-live-swatch" id="valueSwatch"></div>
+          <div class="value-live-text">
+            <b>Sắc độ của màu vừa pha: <span id="valueBadge">—</span></b>
+            <span>Vị trí của màu hiện tại trên thang 9 bậc, quy đổi theo độ sáng cảm nhận (luminance).</span>
+          </div>
+        </div>
+        <div class="value-bar" id="valueBar" role="slider" tabindex="0"
+             aria-label="Dò sắc độ" aria-valuemin="0" aria-valuemax="100">
+          <div class="value-marker" id="valueMarker"></div>
+        </div>
+      </div>
+
+      <div class="value-block">
+        <span class="cms-scale-label">Ứng dụng: kiểm tra độ tương phản chữ trên nền</span>
+        <p class="cms-harmony-sub" style="margin-top:6px;">
+          Chênh lệch sắc độ giữa chữ và nền quyết định độ dễ đọc — đây là nguyên lý
+          đứng sau chỉ số tương phản (contrast ratio) dùng trong thiết kế UI/web.
+        </p>
+        <div class="contrast-row" id="contrastRow"></div>
+      </div>
+    </section>
+  </section>
+
+  <section class="challenges" id="challenges">
+    <div class="challenges-head">
+      <h2>Thử thách nhỏ</h2>
+      <p>Sáu màu mục tiêu — ba bài dùng ánh sáng RGB, ba bài dùng sắc tố RYB. Bấm vào một thẻ để bắt đầu thử.</p>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+        <span class="progress-text" id="progressText">0/6 hoàn thành</span>
+      </div>
+    </div>
+    <div class="challenge-grid" id="challengeGrid"></div>
+  </section>
+
+  <section class="cms-panel cms-camera" id="cameraSection">
+    <div class="cms-value-head">
+      <h2 class="cms-harmony-title">Camera màu — Lấy màu từ thực tế</h2>
+      <p class="cms-harmony-sub">
+        Bật camera, hướng vào một vật ngoài đời (áo, hoa, tường sơn, sản phẩm...).
+        Màu đúng tại tâm khung hình sẽ được lấy mẫu theo thời gian thực — bấm
+        "Dùng màu này" để nạp vào công cụ và tìm cách pha lại đúng màu đó.
+        Camera chỉ xử lý ngay tại máy, không gửi hình ảnh đi đâu cả.
+      </p>
+    </div>
+
+    <div class="camera-body" id="cameraBody">
+      <button class="tb-btn primary" id="cameraStartBtn" type="button">📷 Bật camera</button>
+      <p class="camera-hint" id="cameraHint">
+        Cần chạy trên HTTPS và được cấp quyền camera của trình duyệt.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    Phòng Pha Màu · Công cụ học tập cho sinh viên Thiết kế Đồ họa<br>
+    Biên soạn bởi <strong>Giảng viên Võ Việt Dũng</strong> · Phân hiệu Khánh Hòa, Trường Đại học Tôn Đức Thắng
+  </footer>
+</div>
+
+<script>
+/* ================= Lõi tính toán màu (dùng chung mọi nơi) ================= */
+const RYB_CORNERS = {
+  c000:[1,1,1], c100:[1,0,0], c010:[1,1,0], c001:[0.163,0.373,0.6],
+  c110:[1,0.5,0], c101:[0.5,0,0.5], c011:[0,0.66,0.2], c111:[0.2,0.094,0],
+};
+const lerp = (a,b,t)=>a+(b-a)*t;
+
+function rybToRgb(r,y,b){
+  const out=[0,0,0];
+  for(let i=0;i<3;i++){
+    const c00=lerp(RYB_CORNERS.c000[i], RYB_CORNERS.c100[i], r);
+    const c10=lerp(RYB_CORNERS.c010[i], RYB_CORNERS.c110[i], r);
+    const c01=lerp(RYB_CORNERS.c001[i], RYB_CORNERS.c101[i], r);
+    const c11=lerp(RYB_CORNERS.c011[i], RYB_CORNERS.c111[i], r);
+    const c0=lerp(c00,c10,y);
+    const c1=lerp(c01,c11,y);
+    out[i]=lerp(c0,c1,b);
+  }
+  return out.map(v=>Math.round(Math.min(1,Math.max(0,v))*255));
+}
+
+const toHex = ({r,g,b}) => "#"+[r,g,b].map(v=>v.toString(16).padStart(2,"0")).join("").toUpperCase();
+
+function rgbToHue({r,g,b}){
+  const rn=r/255, gn=g/255, bn=b/255;
+  const max=Math.max(rn,gn,bn), min=Math.min(rn,gn,bn);
+  const d=max-min;
+  if(d===0) return 0;
+  let h;
+  if(max===rn) h=((gn-bn)/d)%6;
+  else if(max===gn) h=(bn-rn)/d+2;
+  else h=(rn-gn)/d+4;
+  h*=60; if(h<0) h+=360;
+  return h;
+}
+
+function rgbToHsl({r,g,b}){
+  const rn=r/255, gn=g/255, bn=b/255;
+  const max=Math.max(rn,gn,bn), min=Math.min(rn,gn,bn);
+  const l=(max+min)/2;
+  let h=0,s=0;
+  const d=max-min;
+  if(d!==0){
+    s = l>0.5 ? d/(2-max-min) : d/(max+min);
+    if(max===rn) h=((gn-bn)/d)%6;
+    else if(max===gn) h=(bn-rn)/d+2;
+    else h=(rn-gn)/d+4;
+    h*=60; if(h<0) h+=360;
+  }
+  return {h,s,l};
+}
+
+function hslToRgb(h,s,l){
+  const hh=((h%360)+360)%360;
+  const c=(1-Math.abs(2*l-1))*s;
+  const x=c*(1-Math.abs(((hh/60)%2)-1));
+  const m=l-c/2;
+  let rp,gp,bp;
+  if(hh<60){rp=c;gp=x;bp=0;}
+  else if(hh<120){rp=x;gp=c;bp=0;}
+  else if(hh<180){rp=0;gp=c;bp=x;}
+  else if(hh<240){rp=0;gp=x;bp=c;}
+  else if(hh<300){rp=x;gp=0;bp=c;}
+  else {rp=c;gp=0;bp=x;}
+  return {
+    r:Math.round((rp+m)*255),
+    g:Math.round((gp+m)*255),
+    b:Math.round((bp+m)*255),
+  };
+}
+
+const NAMED_COLORS=[
+  {name:"Đen",hex:"#111111"},{name:"Trắng",hex:"#FFFFFF"},
+  {name:"Xám đậm",hex:"#4A4A4A"},{name:"Xám nhạt",hex:"#C4C4C4"},
+  {name:"Be",hex:"#E8D9B5"},{name:"Nâu đất",hex:"#7B5230"},{name:"Nâu bùn",hex:"#4B3621"},
+  {name:"Đỏ",hex:"#D62828"},{name:"Đỏ mận",hex:"#7A2048"},{name:"Đỏ san hô",hex:"#E8604C"},
+  {name:"Hồng phấn",hex:"#F2B8C6"},{name:"Cam",hex:"#F4802A"},{name:"Cam đất nung",hex:"#B5651D"},
+  {name:"Vàng",hex:"#F4C40F"},{name:"Vàng chanh",hex:"#E8E24A"},{name:"Vàng đồng",hex:"#B08D2A"},
+  {name:"Lục",hex:"#2F9E44"},{name:"Lục ô liu",hex:"#6B7A29"},{name:"Lục rêu",hex:"#3F4E2F"},
+  {name:"Lục bạc hà",hex:"#7ED9B0"},{name:"Ngọc lam",hex:"#1B9C8E"},{name:"Lam",hex:"#1D6FA5"},
+  {name:"Lam navy",hex:"#122B4F"},{name:"Xanh da trời",hex:"#79C5E8"},{name:"Tím",hex:"#6A3FA0"},
+  {name:"Tím oải hương",hex:"#B79CD8"},{name:"Tím đỏ",hex:"#8E3B6B"},
+];
+const hexToRgb=(hex)=>{
+  const n=hex.replace("#","");
+  return { r:parseInt(n.slice(0,2),16), g:parseInt(n.slice(2,4),16), b:parseInt(n.slice(4,6),16) };
+};
+function nearestColorName(rgb){
+  let best=null, bestDist=Infinity;
+  for(const c of NAMED_COLORS){
+    const cr=hexToRgb(c.hex);
+    const d=(cr.r-rgb.r)**2+(cr.g-rgb.g)**2+(cr.b-rgb.b)**2;
+    if(d<bestDist){ bestDist=d; best=c; }
+  }
+  return best;
+}
+
+function buildHarmonies({h,s,l}){
+  const sat = s<0.12 ? 0.35 : s;
+  const sw = (hue,lum=l)=>({ hex: toHex(hslToRgb(hue, sat, Math.min(0.92,Math.max(0.08,lum)))) });
+  const swSat = (satOverride)=>({ hex: toHex(hslToRgb(h, Math.max(0,Math.min(1,satOverride)), l)) });
+  return [
+    { key:"comp", label:"Tương phản (Bổ sung)",
+      note:"Hai màu đối diện nhau trên vòng thuần sắc, chênh 180°. Tạo độ tương phản mạnh, thu hút ánh nhìn — dùng cho nút bấm, điểm nhấn, bìa poster cần nổi bật.",
+      swatches:[sw(h), sw(h+180)] },
+    { key:"analog", label:"Tương đồng (Analogous)",
+      note:"Các màu liền kề nhau, chênh khoảng 30°. Phối cảnh êm dịu, hài hòa — dùng cho nền, không gian thư giãn, minh họa thiên nhiên.",
+      swatches:[sw(h-30), sw(h), sw(h+30)] },
+    { key:"triad", label:"Bộ ba (Triadic)",
+      note:"Ba màu cách đều nhau 120°. Cân bằng nhưng vẫn sống động — phù hợp thương hiệu trẻ trung, minh họa, giao diện vui tươi.",
+      swatches:[sw(h), sw(h+120), sw(h+240)] },
+    { key:"split", label:"Bổ sung xen kẽ (Split-complementary)",
+      note:"Một màu chính kết hợp hai màu lân cận màu đối diện, chênh 150°/210°. Tương phản rõ nhưng dịu hơn bổ sung thuần — hay dùng trong UI/web.",
+      swatches:[sw(h), sw(h+150), sw(h+210)] },
+    { key:"tetraRect", label:"Bộ bốn hình chữ nhật (Tetradic)",
+      note:"Bốn màu tạo thành hai cặp bổ sung, chênh lệch 60°/120° xen kẽ. Cân bằng tốt giữa nóng–lạnh và sáng–tối, nhưng nhiều màu chủ đạo nên khó phối — hãy chọn 1 màu làm chủ đạo, 3 màu còn lại làm phụ/điểm nhấn.",
+      swatches:[sw(h), sw(h+60), sw(h+180), sw(h+240)] },
+    { key:"tetraSquare", label:"Bộ bốn hình vuông (Tetradic)",
+      note:"Bốn màu cách đều nhau 90° trên vòng thuần sắc. Đa dạng và rực rỡ nhất trong các phối màu, dễ rối mắt nếu dùng cân bằng — nên có 1 màu chủ đạo, các màu còn lại chỉ dùng làm điểm nhấn nhỏ.",
+      swatches:[sw(h), sw(h+90), sw(h+180), sw(h+270)] },
+    { key:"mono", label:"Đơn sắc (Monochromatic)",
+      note:"Cùng một tông màu, chỉ đổi độ sáng. Tạo chiều sâu, phân cấp — dùng cho hệ thống giao diện, biểu đồ, phân cấp thông tin.",
+      swatches:[sw(h,l+0.3), sw(h,l+0.15), sw(h,l), sw(h,l-0.15), sw(h,l-0.3)] },
+    { key:"neutral", label:"Trung tính hóa (Neutral)",
+      note:"Cùng sắc và sắc độ, chỉ giảm dần độ bão hòa về gần xám. Tạo các tông \"tắt\" êm dịu — dùng làm nền, sidebar, hoặc bảng màu trung tính đi kèm một màu chủ đạo rực hơn để làm điểm nhấn.",
+      swatches:[swSat(sat), swSat(sat*0.65), swSat(sat*0.35), swSat(sat*0.12)] },
+  ];
+}
+
+/* ================= Sắc độ (value) & độ tương phản ================= */
+/* Độ sáng cảm nhận theo chuẩn WCAG — dùng để xác định bậc sắc độ và
+   tỉ lệ tương phản, chính xác hơn nhiều so với chỉ lấy trung bình R/G/B. */
+function relativeLuminance({r,g,b}){
+  const toLinear = (c)=>{
+    c = c/255;
+    return c <= 0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4);
+  };
+  return 0.2126*toLinear(r) + 0.7152*toLinear(g) + 0.0722*toLinear(b);
+}
+function contrastRatio(rgbA, rgbB){
+  const lA = relativeLuminance(rgbA) + 0.05;
+  const lB = relativeLuminance(rgbB) + 0.05;
+  return lA > lB ? lA/lB : lB/lA;
+}
+function contrastVerdict(ratio){
+  if(ratio >= 7)   return { label:"Đạt AAA", ok:true };
+  if(ratio >= 4.5) return { label:"Đạt AA · chữ thường", ok:true };
+  if(ratio >= 3)   return { label:"Đạt AA · chữ lớn", ok:true };
+  return { label:"Không đạt", ok:false };
+}
+const VALUE_STEPS = Array.from({length:9}, (_,i)=>{
+  const g = Math.round((i/8)*255);
+  return { step:i+1, hex: toHex({r:g,g,b:g}) };
+});
+
+/* ================= Cấu hình chế độ & thử thách ================= */
+const MODE_CONFIG = {
+  rgb: {
+    label:"Ánh sáng · RGB",
+    hint:"Cộng màu — không có ánh sáng thì là màu đen.",
+    channels:[
+      {key:"r",name:"Đỏ",short:"R",swatch:"#FF3B3B"},
+      {key:"g",name:"Lục",short:"G",swatch:"#33D17A"},
+      {key:"b",name:"Lam",short:"B",swatch:"#3B82F6"},
+    ],
+  },
+  ryb: {
+    label:"Sắc tố · RYB",
+    hint:"Trừ màu — không có sắc tố thì là giấy trắng.",
+    channels:[
+      {key:"r",name:"Đỏ",short:"R",swatch:"#E8432F"},
+      {key:"y",name:"Vàng",short:"Y",swatch:"#F4C40F"},
+      {key:"b",name:"Lam",short:"B",swatch:"#1C4E80"},
+    ],
+  },
+};
+
+function computeResultForVals(mode, vals){
+  if(mode==="rgb"){
+    return {
+      r:Math.round(vals.r/100*255),
+      g:Math.round(vals.g/100*255),
+      b:Math.round(vals.b/100*255),
+    };
+  }
+  const [r,g,b]=rybToRgb(vals.r/100, vals.y/100, vals.b/100);
+  return {r,g,b};
+}
+
+const CHALLENGES = [
+  { id:"c1", mode:"ryb", name:"Cam",          target:{r:100,y:80,b:0} },
+  { id:"c2", mode:"ryb", name:"Tím",          target:{r:70, y:0, b:80} },
+  { id:"c3", mode:"ryb", name:"Lục lá",       target:{r:0,  y:70,b:70} },
+  { id:"c4", mode:"rgb", name:"Vàng chanh",   target:{r:100,g:100,b:0} },
+  { id:"c5", mode:"rgb", name:"Hồng neon",    target:{r:100,g:0,b:100} },
+  { id:"c6", mode:"rgb", name:"Ngọc lam",     target:{r:0,  g:100,b:100} },
+];
+const MATCH_THRESHOLD = 42; // khoảng cách RGB (0–255) chấp nhận là "khớp"
+
+/* ================= State ================= */
+let state = {
+  mode:"rgb",
+  vals:{ rgb:{r:70,g:45,b:85}, ryb:{r:35,y:50,b:15} },
+  copied:false,
+  activeChallengeId:null,
+  showHint:false,
+  completed:new Set(),
+};
+let dragKey = null; // key của kênh (r/g/b/y) đang được kéo, dùng cho thanh trượt tùy chỉnh
+let scaleDragging = false; // true khi đang kéo/dò trên thang nhận biết màu
+let hueDragging = false;   // true khi đang kéo/dò trên vòng tròn Sắc (Hue)
+let satDragging = false;   // true khi đang kéo/dò trên thanh Độ bão hòa
+let lastHsl = { h:0, s:0, l:0 }; // HSL của màu thật (từ khối công cụ pha màu), dùng làm nền cho các bản xem trước khi dò
+let lastScaleHue = 0; // hue cuối cùng đang dò trên thang nhận biết màu, dùng để áp vào thanh trượt khi thả tay
+let lastHueAngle = 0;  // góc cuối cùng đang dò trên vòng tròn Sắc (Hue), dùng để áp vào thanh trượt khi thả tay
+let lastSatPct = 0;    // % cuối cùng đang dò trên thanh Độ bão hòa, dùng để áp vào thanh trượt khi thả tay
+let valueDragging = false; // true khi đang kéo/dò trên thanh Sắc độ
+let lastValuePct = 0;      // % cuối cùng đang dò trên thanh Sắc độ, dùng để áp vào thanh trượt khi thả tay
+
+window.addEventListener("pointermove", (e)=>{
+  if(dragKey){
+    const track = document.querySelector(`.cms-slider-track[data-key="${dragKey}"]`);
+    if(track) setValueFromPointer(e, dragKey, track);
+  }
+  if(scaleDragging){
+    updateScalePreview(scaleValueFromEvent(e));
+  }
+  if(hueDragging){
+    updateHuePreview(angleFromPointer(e, document.getElementById("hueWheel")));
+  }
+  if(satDragging){
+    updateSatPreview(satValueFromPointer(e, document.getElementById("satBar")));
+  }
+  if(valueDragging){
+    updateValuePreview(valueValueFromPointer(e, document.getElementById("valueBar")));
+  }
+});
+window.addEventListener("pointerup", ()=>{
+  if(dragKey){
+    document.querySelectorAll(".cms-slider-track.is-dragging").forEach(t=>t.classList.remove("is-dragging"));
+    dragKey = null;
+  }
+  if(scaleDragging){
+    scaleDragging = false;
+    document.getElementById("scaleBar").classList.remove("is-dragging");
+    commitScaleToSliders(lastScaleHue); // áp màu vừa dò vào công cụ pha màu
+  }
+  if(hueDragging){
+    hueDragging = false;
+    document.getElementById("hueWheel").classList.remove("is-dragging");
+    commitHueToSliders(lastHueAngle); // áp góc sắc vừa dò vào công cụ pha màu
+  }
+  if(satDragging){
+    satDragging = false;
+    document.getElementById("satBar").classList.remove("is-dragging");
+    commitSatToSliders(lastSatPct); // áp % bão hòa vừa dò vào công cụ pha màu
+  }
+  if(valueDragging){
+    valueDragging = false;
+    document.getElementById("valueBar").classList.remove("is-dragging");
+    commitValueToSliders(lastValuePct); // áp sắc độ vừa dò vào công cụ pha màu
+  }
+});
+window.addEventListener("pointercancel", ()=>{
+  document.querySelectorAll(".cms-slider-track.is-dragging").forEach(t=>t.classList.remove("is-dragging"));
+  dragKey = null;
+  if(scaleDragging){
+    scaleDragging = false;
+    document.getElementById("scaleBar").classList.remove("is-dragging");
+    commitScaleToSliders(lastScaleHue);
+  }
+  if(hueDragging){
+    hueDragging = false;
+    document.getElementById("hueWheel").classList.remove("is-dragging");
+    commitHueToSliders(lastHueAngle);
+  }
+  if(satDragging){
+    satDragging = false;
+    document.getElementById("satBar").classList.remove("is-dragging");
+    commitSatToSliders(lastSatPct);
+  }
+  if(valueDragging){
+    valueDragging = false;
+    document.getElementById("valueBar").classList.remove("is-dragging");
+    commitValueToSliders(lastValuePct);
+  }
+});
+
+/* Dò màu theo vị trí kéo trên thang — xem trước ngay khi kéo, và khi thả tay ra
+   sẽ áp màu đó vào các thanh trượt của công cụ pha màu (xem commitScaleToSliders). */
+function scaleValueFromEvent(e){
+  const bar = document.getElementById("scaleBar");
+  const rect = bar.getBoundingClientRect();
+  const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+  return (x / rect.width) * 360;
+}
+function updateScalePreview(hue){
+  lastScaleHue = hue;
+  const previewRgb = hslToRgb(hue, 0.75, 0.5);
+  document.getElementById("scaleMarker").style.left = (hue / 360 * 100) + "%";
+  document.getElementById("nameOut").textContent = nearestColorName(previewRgb).name;
+  applyPreviewColor(previewRgb); // khối tròn màu + mã màu đổi theo ngay khi đang dò trên thang
+}
+
+/* Áp một màu RGB bất kỳ (từ ô sắc tố, hòa sắc, sắc độ...) vào chính các thanh
+   trượt của công cụ pha màu — dùng chung cho mọi điểm bấm chọn màu trên trang. */
+function commitRgbToSliders(target){
+  const clampPct = (v)=> Math.min(100, Math.max(0, v));
+
+  if(state.mode === "rgb"){
+    state.vals.rgb = {
+      r: clampPct(Math.round(target.r/255*100)),
+      g: clampPct(Math.round(target.g/255*100)),
+      b: clampPct(Math.round(target.b/255*100)),
+    };
+  } else {
+    // RYB không có công thức nghịch trực tiếp — dò % gần đúng nhất bằng cách
+    // quét lưới thô (bước 5%) rồi chọn tổ hợp cho màu gần với màu mục tiêu nhất.
+    let best = null, bestDist = Infinity;
+    for(let r=0; r<=100; r+=5){
+      for(let y=0; y<=100; y+=5){
+        for(let b=0; b<=100; b+=5){
+          const [rr,gg,bb] = rybToRgb(r/100, y/100, b/100);
+          const d = (rr-target.r)**2 + (gg-target.g)**2 + (bb-target.b)**2;
+          if(d < bestDist){ bestDist = d; best = {r,y,b}; }
+        }
+      }
+    }
+    state.vals.ryb = best;
+  }
+  render();
+}
+
+/* Áp màu đang dò trên thang vào chính các thanh trượt của công cụ pha màu,
+   để khi thả tay ra, công cụ pha màu thật sự đổi theo — không chỉ xem trước. */
+function commitScaleToSliders(hue){
+  commitRgbToSliders(hslToRgb(hue, 0.75, 0.5));
+}
+
+/* Vòng tròn Sắc (Hue) — kéo để dò (giữ nguyên độ bão hòa/sắc độ thật khi xem trước),
+   và khi thả tay ra sẽ áp góc sắc đó vào công cụ pha màu (xem commitHueToSliders). */
+function angleFromPointer(e, wheelEl){
+  const rect = wheelEl.getBoundingClientRect();
+  const cx = rect.left + rect.width/2, cy = rect.top + rect.height/2;
+  const dx = e.clientX - cx, dy = e.clientY - cy;
+  let angle = Math.atan2(dx, -dy) * (180/Math.PI);
+  if(angle < 0) angle += 360;
+  return angle;
+}
+function updateHuePreview(angle){
+  lastHueAngle = angle;
+  document.getElementById("hueWheelPivot").style.transform = `rotate(${angle}deg)`;
+  const previewRgb = hslToRgb(angle, lastHsl.s, lastHsl.l);
+  document.getElementById("hueBadge").textContent = `${Math.round(angle)}° · ${nearestColorName(previewRgb).name}`;
+  applyPreviewColor(previewRgb); // khối tròn màu chính đổi theo ngay khi đang dò
+}
+/* Khi thả tay khỏi vòng tròn Hue, áp góc sắc vừa dò vào công cụ pha màu —
+   giữ nguyên độ bão hòa/sắc độ thật hiện tại, chỉ đổi sắc. */
+function commitHueToSliders(angle){
+  commitRgbToSliders(hslToRgb(angle, lastHsl.s, lastHsl.l));
+}
+
+/* Thanh Độ bão hòa — kéo để dò (giữ nguyên sắc/sắc độ thật khi xem trước),
+   và khi thả tay ra sẽ áp % đó vào công cụ pha màu (xem commitSatToSliders). */
+function satValueFromPointer(e, barEl){
+  const rect = barEl.getBoundingClientRect();
+  const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+  return (x / rect.width) * 100;
+}
+function updateSatPreview(pct){
+  lastSatPct = pct;
+  document.getElementById("satMarker").style.left = pct + "%";
+  const previewRgb = hslToRgb(lastHsl.h, pct/100, lastHsl.l);
+  document.getElementById("satBadge").textContent = `${Math.round(pct)}%`;
+  applyPreviewColor(previewRgb); // khối tròn màu chính đổi theo ngay khi đang dò
+}
+/* Khi thả tay khỏi thanh Saturation, áp % vừa dò vào công cụ pha màu —
+   giữ nguyên sắc và sắc độ thật hiện tại, chỉ đổi độ bão hòa. */
+function commitSatToSliders(pct){
+  commitRgbToSliders(hslToRgb(lastHsl.h, pct/100, lastHsl.l));
+}
+
+/* Thanh Sắc độ — kéo để dò (giữ nguyên sắc/độ bão hòa thật khi xem trước),
+   và khi thả tay ra sẽ áp sắc độ đó vào công cụ pha màu (xem commitValueToSliders).
+   Vì sắc độ dùng độ sáng cảm nhận (luminance) chứ không phải "l" của HSL, cần dò
+   ngược ra "l" tương ứng bằng cách quét thử — không có công thức nghịch trực tiếp. */
+function valueValueFromPointer(e, barEl){
+  const rect = barEl.getBoundingClientRect();
+  const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+  return (x / rect.width) * 100;
+}
+function lightnessForLuminance(h, s, targetLum){
+  let bestL = 0.5, bestDiff = Infinity;
+  for(let li=0; li<=100; li+=2){
+    const l = li/100;
+    const diff = Math.abs(relativeLuminance(hslToRgb(h, s, l)) - targetLum);
+    if(diff < bestDiff){ bestDiff = diff; bestL = l; }
+  }
+  return bestL;
+}
+function updateValuePreview(pct){
+  lastValuePct = pct;
+  const l = lightnessForLuminance(lastHsl.h, lastHsl.s, pct/100);
+  const previewRgb = hslToRgb(lastHsl.h, lastHsl.s, l);
+  const stepIdx = Math.min(8, Math.round(pct/100*8));
+  document.getElementById("valueMarker").style.left = pct + "%";
+  document.getElementById("valueSwatch").style.background = `rgb(${previewRgb.r},${previewRgb.g},${previewRgb.b})`;
+  document.getElementById("valueBadge").textContent = `Bậc ${stepIdx+1}/9 · ~${Math.round(pct)}%`;
+  applyPreviewColor(previewRgb); // khối tròn màu chính đổi theo ngay khi đang dò
+}
+function commitValueToSliders(pct){
+  const l = lightnessForLuminance(lastHsl.h, lastHsl.s, pct/100);
+  commitRgbToSliders(hslToRgb(lastHsl.h, lastHsl.s, l));
+}
+
+/* ================= Render ================= */
+function currentVals(){ return state.vals[state.mode]; }
+function currentResultRgb(){ return computeResultForVals(state.mode, currentVals()); }
+
+function render(){
+  document.body.setAttribute("data-app-mode", state.mode);
+
+  // toggle buttons
+  document.querySelectorAll("#modeToggle button").forEach(btn=>{
+    btn.setAttribute("data-active", String(btn.dataset.mode===state.mode));
+  });
+  document.getElementById("modeHint").textContent = MODE_CONFIG[state.mode].hint;
+
+  renderSliders();
+  renderResultSection();
+  renderChallengeGrid();
+  renderProgress();
+}
+
+/* Cập nhật khối tròn màu chính + mã HEX/RGB + khối màu nổi — dùng chung cho
+   MỌI công cụ dò màu trên trang (thang, hue, saturation, value...), để dù
+   đang chỉnh ở đâu, khối màu vẫn luôn phản ánh đúng và luôn nhìn thấy được. */
+function applyPreviewColor(rgb){
+  const hex = toHex(rgb);
+  const css = `rgb(${rgb.r},${rgb.g},${rgb.b})`;
+  const swatch = document.getElementById("swatch");
+  swatch.style.backgroundColor = css;
+  swatch.style.boxShadow = `0 0 46px -6px ${css}`;
+  document.getElementById("hexOut").textContent = hex;
+  document.getElementById("rgbOut").textContent = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+  document.getElementById("floatSwatchDot").style.background = css;
+  document.getElementById("floatSwatchHex").textContent = hex;
+}
+
+function renderResultSection(){
+  const resultRgb = currentResultRgb();
+  const hex = toHex(resultRgb);
+  const hue = rgbToHue(resultRgb);
+  const hsl = rgbToHsl(resultRgb);
+  const nearest = nearestColorName(resultRgb);
+  const harmonies = buildHarmonies(hsl);
+  lastHsl = hsl;
+
+  applyPreviewColor(resultRgb);
+  document.getElementById("copyBtn").textContent = state.copied ? "ĐÃ CHÉP" : "CHÉP";
+  document.getElementById("nameOut").textContent = nearest.name;
+  document.getElementById("scaleMarker").style.left = (hue/360*100)+"%";
+
+  const recipeEl = document.getElementById("recipeOut");
+  recipeEl.innerHTML = "";
+  MODE_CONFIG[state.mode].channels.forEach(ch=>{
+    const span = document.createElement("span");
+    span.className = "cms-recipe-item";
+    span.innerHTML = `<span class="cms-recipe-dab" style="background:${ch.swatch}"></span>${ch.name} ${currentVals()[ch.key]}%`;
+    recipeEl.appendChild(span);
+  });
+
+  const harmonyEl = document.getElementById("harmonyList");
+  harmonyEl.innerHTML = "";
+  harmonies.forEach(hm=>{
+    const row = document.createElement("div");
+    row.className = "cms-harmony-row";
+    row.innerHTML = `
+      <div class="cms-harmony-info">
+        <span class="cms-harmony-label">${hm.label}</span>
+        <p class="cms-harmony-note">${hm.note}</p>
+      </div>
+      <div class="cms-harmony-swatches">
+        ${hm.swatches.map(sw=>`
+          <div class="cms-harmony-swatch">
+            <div class="cms-harmony-dot pickable" style="background:${sw.hex}" data-hex="${sw.hex}" title="Bấm để pha thử màu này"></div>
+            <span class="cms-harmony-hex">${sw.hex}</span>
+          </div>`).join("")}
+      </div>`;
+    harmonyEl.appendChild(row);
+  });
+
+  renderTargetBanner(resultRgb);
+
+  // ---- Sắc (Hue) & Độ bão hòa (Saturation) ----
+  document.getElementById("hueWheelPivot").style.transform = `rotate(${hue}deg)`;
+  document.getElementById("hueBadge").textContent = `${Math.round(hue)}° · ${nearest.name}`;
+
+  const satBar = document.getElementById("satBar");
+  const lPct = Math.round(hsl.l*100);
+  satBar.style.background = `linear-gradient(to right, hsl(${hue},0%,${lPct}%), hsl(${hue},100%,${lPct}%))`;
+  document.getElementById("satMarker").style.left = (hsl.s*100) + "%";
+  document.getElementById("satBadge").textContent = `${Math.round(hsl.s*100)}%`;
+
+  // ---- Sắc độ & tương phản ----
+  const lum = relativeLuminance(resultRgb);       // 0 (đen) – 1 (trắng)
+  const stepIdx = Math.min(8, Math.round(lum*8)); // 0..8 -> bậc 1..9
+  document.getElementById("valueSwatch").style.background = `rgb(${resultRgb.r},${resultRgb.g},${resultRgb.b})`;
+  document.getElementById("valueBadge").textContent = `Bậc ${stepIdx+1}/9 · ~${Math.round(lum*100)}%`;
+  document.getElementById("valueMarker").style.left = (lum*100) + "%";
+
+  const white = {r:255,g:255,b:255}, black = {r:0,g:0,b:0};
+  const rWhite = contrastRatio(resultRgb, white);
+  const rBlack = contrastRatio(resultRgb, black);
+  const vWhite = contrastVerdict(rWhite);
+  const vBlack = contrastVerdict(rBlack);
+  document.getElementById("contrastRow").innerHTML = `
+    <div class="contrast-card">
+      <div class="contrast-chip" style="background:rgb(${resultRgb.r},${resultRgb.g},${resultRgb.b}); color:#fff;">Aa</div>
+      <div class="contrast-info">
+        <b>${rWhite.toFixed(2)} : 1</b>
+        Chữ trắng trên nền này —
+        <span class="contrast-verdict ${vWhite.ok ? "ok" : "no"}">${vWhite.label}</span>
+      </div>
+    </div>
+    <div class="contrast-card">
+      <div class="contrast-chip" style="background:rgb(${resultRgb.r},${resultRgb.g},${resultRgb.b}); color:#111;">Aa</div>
+      <div class="contrast-info">
+        <b>${rBlack.toFixed(2)} : 1</b>
+        Chữ đen trên nền này —
+        <span class="contrast-verdict ${vBlack.ok ? "ok" : "no"}">${vBlack.label}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderValueSteps(){
+  const wrap = document.getElementById("valueSteps");
+  wrap.innerHTML = VALUE_STEPS.map(v => `
+    <div class="value-step pickable" style="background:${v.hex};" data-hex="${v.hex}" title="Bấm để pha thử sắc độ này">
+      <span style="color:${v.step<=4 ? '#fff' : '#111'}">${v.step}</span>
+    </div>
+  `).join("");
+}
+
+function renderSliders(){
+  const panel = document.getElementById("sliderPanel");
+  panel.innerHTML = "";
+  MODE_CONFIG[state.mode].channels.forEach(ch=>{
+    const val = currentVals()[ch.key];
+    const wrap = document.createElement("div");
+    wrap.className = "cms-slider";
+    wrap.innerHTML = `
+      <div class="cms-slider-top">
+        <span class="cms-slider-name">
+          <span class="cms-dab pickable" data-key="${ch.key}" title="Bấm để đẩy ${ch.name} lên 100%" style="background:${ch.swatch}"></span>
+          ${ch.name} (${ch.short})
+        </span>
+        <span class="cms-slider-value" data-value-for="${ch.key}">${val}%</span>
+      </div>
+      <div class="cms-slider-track" data-key="${ch.key}" role="slider" tabindex="0"
+           aria-label="Tỉ lệ ${ch.name}" aria-orientation="horizontal"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="${val}">
+        <div class="cms-slider-fill" data-fill-for="${ch.key}" style="width:${val}%; background:${ch.swatch}"></div>
+        <div class="cms-slider-thumb" data-thumb-for="${ch.key}" style="left:${val}%; background:${ch.swatch}"></div>
+      </div>
+    `;
+    const track = wrap.querySelector(".cms-slider-track");
+
+    wrap.querySelector(".cms-dab").addEventListener("click", ()=>{
+      currentVals()[ch.key] = 100;
+      render();
+    });
+
+    track.addEventListener("pointerdown", (e)=>{
+      e.preventDefault();
+      dragKey = ch.key;
+      track.classList.add("is-dragging");
+      setValueFromPointer(e, ch.key, track);
+      track.focus();
+    });
+
+    track.addEventListener("keydown", (e)=>{
+      let v = currentVals()[ch.key];
+      const step = e.shiftKey ? 10 : 1;
+      if(e.key === "ArrowRight" || e.key === "ArrowUp") v = Math.min(100, v + step);
+      else if(e.key === "ArrowLeft" || e.key === "ArrowDown") v = Math.max(0, v - step);
+      else if(e.key === "Home") v = 0;
+      else if(e.key === "End") v = 100;
+      else return;
+      e.preventDefault();
+      currentVals()[ch.key] = v;
+      updateSliderDOM(ch.key);
+      renderResultSection();
+    });
+
+    panel.appendChild(wrap);
+  });
+}
+
+/* Kéo hoặc bấm vào bất kỳ điểm nào trên thanh để đặt giá trị ngay lập tức. */
+function setValueFromPointer(e, key, track){
+  const rect = track.getBoundingClientRect();
+  const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+  const val = Math.round((x / rect.width) * 100);
+  currentVals()[key] = val;
+  updateSliderDOM(key);
+  renderResultSection();
+}
+
+function updateSliderDOM(key){
+  const valEl = document.querySelector(`[data-value-for="${key}"]`);
+  const fillEl = document.querySelector(`[data-fill-for="${key}"]`);
+  const thumbEl = document.querySelector(`[data-thumb-for="${key}"]`);
+  const trackEl = document.querySelector(`.cms-slider-track[data-key="${key}"]`);
+  const val = currentVals()[key];
+  if(valEl) valEl.textContent = val + "%";
+  if(fillEl) fillEl.style.width = val + "%";
+  if(thumbEl) thumbEl.style.left = val + "%";
+  if(trackEl) trackEl.setAttribute("aria-valuenow", val);
+}
+
+function renderTargetBanner(resultRgb){
+  const banner = document.getElementById("targetBanner");
+  const challenge = CHALLENGES.find(c=>c.id===state.activeChallengeId);
+  if(!challenge){ banner.classList.remove("is-visible"); return; }
+  banner.classList.add("is-visible");
+  const targetRgb = computeResultForVals(challenge.mode, challenge.target);
+  document.getElementById("targetDot").style.background = `rgb(${targetRgb.r},${targetRgb.g},${targetRgb.b})`;
+  document.getElementById("targetName").textContent = challenge.name;
+
+  const hintBtn = document.getElementById("hintBtn");
+  hintBtn.textContent = state.showHint
+    ? MODE_CONFIG[challenge.mode].channels.map(ch=>`${ch.short} ${challenge.target[ch.key]}%`).join(" · ")
+    : "Gợi ý %";
+}
+
+function renderChallengeGrid(){
+  const grid = document.getElementById("challengeGrid");
+  grid.innerHTML = "";
+  CHALLENGES.forEach(c=>{
+    const rgb = computeResultForVals(c.mode, c.target);
+    const card = document.createElement("div");
+    card.className = "challenge-card" + (state.completed.has(c.id) ? " is-done" : "");
+    card.innerHTML = `
+      <span class="challenge-check">✓ xong</span>
+      <div class="challenge-top">
+        <div class="challenge-dot" style="background:rgb(${rgb.r},${rgb.g},${rgb.b})"></div>
+        <div>
+          <div class="challenge-name">${c.name}</div>
+          <span class="challenge-tag">${c.mode === "rgb" ? "Ánh sáng · RGB" : "Sắc tố · RYB"}</span>
+        </div>
+      </div>
+      <button class="challenge-btn" type="button" data-challenge="${c.id}">Thử thách này →</button>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function renderProgress(){
+  const pct = Math.round((state.completed.size / CHALLENGES.length) * 100);
+  document.getElementById("progressBar").style.width = pct + "%";
+  document.getElementById("progressText").textContent = `${state.completed.size}/${CHALLENGES.length} hoàn thành`;
+}
+
+/* ================= Phương trình pha màu (phần giới thiệu) ================= */
+function renderEquations(){
+  const eqRgb = document.getElementById("eqRgb");
+  const eqRyb = document.getElementById("eqRyb");
+
+  const chip = (rgb,label,mode) => `
+    <div class="eq-chip-wrap">
+      <div class="eq-chip pickable" style="background:rgb(${rgb.r},${rgb.g},${rgb.b})"
+           data-hex="${toHex(rgb)}" data-mode="${mode}" title="Bấm để pha thử màu này"></div>
+      <span class="eq-chip-label">${label}</span>
+    </div>`;
+
+  const RED = {r:255,g:0,b:0}, GREEN = {r:0,g:255,b:0}, BLUE = {r:0,g:0,b:255};
+  const rgbEquations = [
+    { parts:[[RED,"Đỏ"],[GREEN,"Lục"]], result:[{r:255,g:255,b:0}, "Vàng"] },
+    { parts:[[RED,"Đỏ"],[BLUE,"Lam"]], result:[{r:255,g:0,b:255}, "Hồng cánh sen"] },
+    { parts:[[RED,"Đỏ"],[GREEN,"Lục"],[BLUE,"Lam"]], result:[{r:255,g:255,b:255}, "Trắng"] },
+  ];
+  eqRgb.innerHTML = rgbEquations.map(eq => `
+    <div class="eq-row">
+      ${eq.parts.map((p,i)=> (i>0 ? '<span class="eq-op">+</span>' : '') + chip(p[0],p[1],"rgb")).join("")}
+      <span class="eq-op">=</span>
+      ${chip(eq.result[0], eq.result[1], "rgb")}
+    </div>
+  `).join("");
+
+  const rP = {r:1,g:0,b:0}; // dùng trực tiếp thuật toán RYB->RGB cho đúng thực tế pha màu
+  const pigment = (r,y,b) => { const [rr,gg,bb] = rybToRgb(r,y,b); return {r:rr,g:gg,b:bb}; };
+  const rybEquations = [
+    { parts:[[pigment(1,0,0),"Đỏ"],[pigment(0,1,0),"Vàng"]], result:[pigment(1,1,0), "Cam"] },
+    { parts:[[pigment(0,1,0),"Vàng"],[pigment(0,0,1),"Lam"]], result:[pigment(0,1,1), "Lục"] },
+    { parts:[[pigment(1,0,0),"Đỏ"],[pigment(0,1,0),"Vàng"],[pigment(0,0,1),"Lam"]], result:[pigment(1,1,1), "Nâu bùn"] },
+  ];
+  eqRyb.innerHTML = rybEquations.map(eq => `
+    <div class="eq-row">
+      ${eq.parts.map((p,i)=> (i>0 ? '<span class="eq-op">+</span>' : '') + chip(p[0],p[1],"ryb")).join("")}
+      <span class="eq-op">=</span>
+      ${chip(eq.result[0], eq.result[1], "ryb")}
+    </div>
+  `).join("");
+}
+
+/* ================= Sự kiện ================= */
+document.getElementById("modeToggle").addEventListener("click", (e)=>{
+  const btn = e.target.closest("button[data-mode]");
+  if(!btn) return;
+  state.mode = btn.dataset.mode;
+  render();
+});
+
+document.getElementById("copyBtn").addEventListener("click", ()=>{
+  const hex = document.getElementById("hexOut").textContent;
+  if(navigator.clipboard){ navigator.clipboard.writeText(hex).catch(()=>{}); }
+  state.copied = true;
+  render();
+  setTimeout(()=>{ state.copied = false; render(); }, 1400);
+});
+
+document.getElementById("challengeGrid").addEventListener("click", (e)=>{
+  const btn = e.target.closest("button[data-challenge]");
+  if(!btn) return;
+  const challenge = CHALLENGES.find(c=>c.id===btn.dataset.challenge);
+  if(!challenge) return;
+  state.activeChallengeId = challenge.id;
+  state.showHint = false;
+  state.mode = challenge.mode;
+  render();
+  document.getElementById("targetFeedback").textContent = "";
+  document.getElementById("targetFeedback").className = "target-banner-feedback";
+  document.getElementById("targetBanner").scrollIntoView({behavior:"smooth", block:"center"});
+});
+
+document.getElementById("hintBtn").addEventListener("click", ()=>{
+  state.showHint = !state.showHint;
+  render();
+});
+
+document.getElementById("scaleBar").addEventListener("pointerdown", (e)=>{
+  e.preventDefault();
+  scaleDragging = true;
+  const bar = e.currentTarget;
+  bar.classList.add("is-dragging");
+  bar.focus();
+  updateScalePreview(scaleValueFromEvent(e));
+});
+
+document.getElementById("scaleBar").addEventListener("keydown", (e)=>{
+  const marker = document.getElementById("scaleMarker");
+  let hue = parseFloat(marker.style.left) / 100 * 360 || 0;
+  const step = e.shiftKey ? 20 : 5;
+  if(e.key === "ArrowRight" || e.key === "ArrowUp") hue = Math.min(360, hue + step);
+  else if(e.key === "ArrowLeft" || e.key === "ArrowDown") hue = Math.max(0, hue - step);
+  else if(e.key === "Home") hue = 0;
+  else if(e.key === "End") hue = 360;
+  else return;
+  e.preventDefault();
+  updateScalePreview(hue);
+});
+document.getElementById("scaleBar").addEventListener("blur", ()=>{
+  commitScaleToSliders(lastScaleHue); // rời khỏi thang thì áp màu đã dò vào công cụ pha màu
+});
+
+const hueWheelEl = document.getElementById("hueWheel");
+hueWheelEl.addEventListener("pointerdown", (e)=>{
+  e.preventDefault();
+  hueDragging = true;
+  hueWheelEl.classList.add("is-dragging");
+  hueWheelEl.focus();
+  updateHuePreview(angleFromPointer(e, hueWheelEl));
+});
+hueWheelEl.addEventListener("keydown", (e)=>{
+  let angle = parseFloat((document.getElementById("hueWheelPivot").style.transform.match(/-?\d+(\.\d+)?/) || [0])[0]) || 0;
+  const step = e.shiftKey ? 20 : 5;
+  if(e.key === "ArrowRight" || e.key === "ArrowUp") angle = (angle + step) % 360;
+  else if(e.key === "ArrowLeft" || e.key === "ArrowDown") angle = (angle - step + 360) % 360;
+  else if(e.key === "Home") angle = 0;
+  else if(e.key === "End") angle = 359;
+  else return;
+  e.preventDefault();
+  updateHuePreview(angle);
+});
+hueWheelEl.addEventListener("blur", ()=>{ commitHueToSliders(lastHueAngle); });
+
+const satBarEl = document.getElementById("satBar");
+satBarEl.addEventListener("pointerdown", (e)=>{
+  e.preventDefault();
+  satDragging = true;
+  satBarEl.classList.add("is-dragging");
+  satBarEl.focus();
+  updateSatPreview(satValueFromPointer(e, satBarEl));
+});
+satBarEl.addEventListener("keydown", (e)=>{
+  let pct = parseFloat(document.getElementById("satMarker").style.left) || 0;
+  const step = e.shiftKey ? 20 : 5;
+  if(e.key === "ArrowRight" || e.key === "ArrowUp") pct = Math.min(100, pct + step);
+  else if(e.key === "ArrowLeft" || e.key === "ArrowDown") pct = Math.max(0, pct - step);
+  else if(e.key === "Home") pct = 0;
+  else if(e.key === "End") pct = 100;
+  else return;
+  e.preventDefault();
+  updateSatPreview(pct);
+});
+satBarEl.addEventListener("blur", ()=>{ commitSatToSliders(lastSatPct); });
+
+const valueBarEl = document.getElementById("valueBar");
+valueBarEl.addEventListener("pointerdown", (e)=>{
+  e.preventDefault();
+  valueDragging = true;
+  valueBarEl.classList.add("is-dragging");
+  valueBarEl.focus();
+  updateValuePreview(valueValueFromPointer(e, valueBarEl));
+});
+valueBarEl.addEventListener("keydown", (e)=>{
+  let pct = parseFloat(document.getElementById("valueMarker").style.left) || 0;
+  const step = e.shiftKey ? 20 : 5;
+  if(e.key === "ArrowRight" || e.key === "ArrowUp") pct = Math.min(100, pct + step);
+  else if(e.key === "ArrowLeft" || e.key === "ArrowDown") pct = Math.max(0, pct - step);
+  else if(e.key === "Home") pct = 0;
+  else if(e.key === "End") pct = 100;
+  else return;
+  e.preventDefault();
+  updateValuePreview(pct);
+});
+valueBarEl.addEventListener("blur", ()=>{ commitValueToSliders(lastValuePct); });
+
+document.getElementById("checkBtn").addEventListener("click", ()=>{
+  const challenge = CHALLENGES.find(c=>c.id===state.activeChallengeId);
+  if(!challenge) return;
+  const targetRgb = computeResultForVals(challenge.mode, challenge.target);
+  const resultRgb = currentResultRgb();
+  const dist = Math.sqrt((targetRgb.r-resultRgb.r)**2 + (targetRgb.g-resultRgb.g)**2 + (targetRgb.b-resultRgb.b)**2);
+  const fb = document.getElementById("targetFeedback");
+  if(dist <= MATCH_THRESHOLD){
+    state.completed.add(challenge.id);
+    fb.textContent = "✓ Chính xác! Bạn đã pha đúng màu mục tiêu.";
+    fb.className = "target-banner-feedback ok";
+  } else {
+    fb.textContent = "Chưa khớp lắm — thử chỉnh lại thanh trượt rồi kiểm tra lại nhé.";
+    fb.className = "target-banner-feedback no";
+  }
+  renderChallengeGrid();
+  renderProgress();
+});
+
+/* Bấm vào bất kỳ ô sắc tố nào trên trang (phương trình pha màu, hòa sắc, sắc độ)
+   để nạp thẳng màu đó vào công cụ pha màu — không cần tự dò lại bằng tay. */
+function pickColorFromHex(hex, mode){
+  if(mode && mode !== state.mode){
+    state.mode = mode;
+  }
+  commitRgbToSliders(hexToRgb(hex));
+  document.getElementById("tool").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+document.getElementById("eqRgb").addEventListener("click", (e)=>{
+  const chip = e.target.closest(".eq-chip");
+  if(!chip) return;
+  pickColorFromHex(chip.dataset.hex, chip.dataset.mode);
+});
+document.getElementById("eqRyb").addEventListener("click", (e)=>{
+  const chip = e.target.closest(".eq-chip");
+  if(!chip) return;
+  pickColorFromHex(chip.dataset.hex, chip.dataset.mode);
+});
+document.getElementById("harmonyList").addEventListener("click", (e)=>{
+  const dot = e.target.closest(".cms-harmony-dot");
+  if(!dot) return;
+  pickColorFromHex(dot.dataset.hex);
+});
+document.getElementById("valueSteps").addEventListener("click", (e)=>{
+  const step = e.target.closest(".value-step");
+  if(!step) return;
+  pickColorFromHex(step.dataset.hex);
+});
+
+/* Khối màu nổi — luôn hiển thị khi khối tròn màu chính bị cuộn khuất khỏi
+   màn hình, để dù đang chỉnh ở công cụ nào (hue, saturation, sắc độ, hòa sắc...)
+   phía dưới trang, người dùng vẫn luôn nhìn thấy màu đang pha VÀ có thể bật
+   camera lấy màu thực tế ngay tại đây, không cần cuộn đi tìm. */
+document.getElementById("floatSwatchClickzone").addEventListener("click", ()=>{
+  document.getElementById("tool").scrollIntoView({behavior:"smooth", block:"start"});
+});
+document.getElementById("floatCamBtn").addEventListener("click", ()=>{
+  document.getElementById("cameraSection").scrollIntoView({behavior:"smooth", block:"start"});
+  if(!cameraStream) startCamera();
+});
+if("IntersectionObserver" in window){
+  const floatSwatch = document.getElementById("floatSwatch");
+  const swatchWrap = document.querySelector(".cms-swatch-wrap");
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach((entry)=>{
+      floatSwatch.classList.toggle("is-visible", !entry.isIntersecting);
+    });
+  }, { threshold: 0 });
+  io.observe(swatchWrap);
+}
+
+/* ================= Camera màu ================= */
+/* Lấy mẫu màu tại tâm khung hình camera theo thời gian thực, hoàn toàn xử lý
+   cục bộ trong trình duyệt (không upload hình ảnh đi đâu cả). */
+let cameraStream = null;
+let cameraSampleRgb = null;
+let cameraRAF = null;
+
+function startCamera(){
+  const hint = document.getElementById("cameraHint");
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    hint.classList.add("is-error");
+    hint.textContent = "Trình duyệt này không hỗ trợ camera, hoặc trang chưa chạy trên HTTPS.";
+    return;
+  }
+  hint.classList.remove("is-error");
+  hint.textContent = "Đang xin quyền camera...";
+
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+    .then((stream)=>{
+      cameraStream = stream;
+      renderCameraLiveUI();
+      const video = document.getElementById("cameraVideo");
+      video.srcObject = stream;
+      video.onloadedmetadata = ()=>{
+        video.play();
+        startCameraSampling();
+      };
+    })
+    .catch((err)=>{
+      hint.classList.add("is-error");
+      const reason = (err && err.message) ? err.message : "trình duyệt từ chối quyền truy cập.";
+      hint.textContent = "Không thể mở camera: " + reason + " Hãy kiểm tra quyền camera của trình duyệt rồi thử lại.";
+    });
+}
+
+function renderCameraLiveUI(){
+  const body = document.getElementById("cameraBody");
+  body.innerHTML = `
+    <div class="camera-live">
+      <video id="cameraVideo" autoplay playsinline muted></video>
+      <div class="camera-reticle"></div>
+    </div>
+    <canvas id="cameraCanvas" style="display:none;"></canvas>
+    <div class="camera-result">
+      <div class="camera-swatch" id="cameraSwatch"></div>
+      <div class="camera-info">
+        <b id="cameraHex">—</b>
+        <span>Màu tại tâm khung hình, cập nhật liên tục.</span>
+      </div>
+    </div>
+    <div class="camera-actions">
+      <button class="tb-btn primary" id="cameraUseBtn" type="button">Dùng màu này</button>
+      <button class="tb-btn" id="cameraStopBtn" type="button">Tắt camera</button>
+    </div>
+  `;
+  document.getElementById("cameraUseBtn").addEventListener("click", ()=>{
+    if(cameraSampleRgb) commitRgbToSliders(cameraSampleRgb);
+  });
+  document.getElementById("cameraStopBtn").addEventListener("click", stopCamera);
+}
+
+function startCameraSampling(){
+  const video = document.getElementById("cameraVideo");
+  const canvas = document.getElementById("cameraCanvas");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+  function tick(){
+    if(!cameraStream) return;
+    if(video.videoWidth && video.videoHeight){
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const cx = Math.floor(canvas.width/2), cy = Math.floor(canvas.height/2);
+      try{
+        const data = ctx.getImageData(cx, cy, 1, 1).data;
+        cameraSampleRgb = { r:data[0], g:data[1], b:data[2] };
+        const swatchEl = document.getElementById("cameraSwatch");
+        const hexEl = document.getElementById("cameraHex");
+        if(swatchEl) swatchEl.style.background = `rgb(${data[0]},${data[1]},${data[2]})`;
+        if(hexEl) hexEl.textContent = toHex(cameraSampleRgb);
+      } catch(e){ /* bỏ qua lỗi đọc pixel thoáng qua khi khung hình chưa sẵn sàng */ }
+    }
+    cameraRAF = requestAnimationFrame(tick);
+  }
+  cameraRAF = requestAnimationFrame(tick);
+}
+
+function stopCamera(){
+  if(cameraRAF){ cancelAnimationFrame(cameraRAF); cameraRAF = null; }
+  if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream = null; }
+  cameraSampleRgb = null;
+  const body = document.getElementById("cameraBody");
+  body.innerHTML = `
+    <button class="tb-btn primary" id="cameraStartBtn" type="button">📷 Bật camera</button>
+    <p class="camera-hint" id="cameraHint">Cần chạy trên HTTPS và được cấp quyền camera của trình duyệt.</p>
+  `;
+  document.getElementById("cameraStartBtn").addEventListener("click", startCamera);
+}
+
+document.getElementById("cameraStartBtn").addEventListener("click", startCamera);
+window.addEventListener("beforeunload", ()=>{
+  if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); }
+});
+
+/* ================= Khởi động ================= */
+renderEquations();
+renderValueSteps();
+render();
+
+/* Nạp màu từ link ngoài (vd: từ Thư viện Màu Thương Hiệu) qua tham số ?hex=RRGGBB */
+(function loadColorFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  const hexParam = params.get("hex");
+  if(hexParam && /^[0-9A-Fa-f]{6}$/.test(hexParam)){
+    commitRgbToSliders(hexToRgb("#" + hexParam));
+    setTimeout(()=>{
+      document.getElementById("tool").scrollIntoView({behavior:"smooth", block:"start"});
+    }, 200);
+  }
+})();
+</script>
+</body>
+</html>
